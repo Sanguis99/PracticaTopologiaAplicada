@@ -53,20 +53,22 @@ class Complejo_simplicial:
     def dimension(self):
         print(f"Dimensión del complejo: {self.d}")
 
+    ################################# CLASE 2 #######################################
     # Cálculo de la característica de Euler
-    def Euler(self):
-        chi = 0
-        # Definimos el sumatorio para la característica de Euler
-        for i in range(self.d + 1):
-            num_caras = len([cara for cara in self.c if len(cara) == i + 1])
-            chi += (-1) ** i * num_caras
-        print(f"Característica de Euler: {chi}")
-        return chi
-    
     def caras_por_dimension(self):
         caras_dim = [self.n_caras(i) for i in range(self.d + 1)]
         # No hace falta imprimir aquí porque n_caras ya imprime
         return caras_dim
+
+    def Euler(self):
+        chi = 0
+        # Definimos el sumatorio para la característica de Euler
+        for i in range(self.d + 1):
+            # Calculamos el número de caras de cada dimensión, las de dimensión para se suman
+            # y las de dimensión impar se restan, obteniendo así la característica de Euler
+            chi += (-1) ** i * len(self.caras_por_dimension()[i])
+        print(f"Característica de Euler: {chi}")
+        return chi
     
     def estrella(self, c):
         # Todas las caras que contienen a c
