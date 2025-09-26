@@ -11,36 +11,42 @@ class Simplice:
         caras = set()
         n = len(self.vertices)
         for k in range(1, n + 1):
+            #Para calcular las caras del símplice, vemos todas las posibles combinaciones que se pueden
+            #formar con los vértices, para ello se utiliza el paquete combinations
             for cara in combinations(self.vertices, k):
                 caras.add(tuple(cara))
         return caras
 
 # Clase de los complejos simpliciales
 class Complejo_simplicial:
-    def __init__(self, simplices):
+    def __init__(self, simplices): #simplices es un set de simplices
         self.simplices = simplices
         self.c = self.calcular_caras()
+        #la dimensión del complejo simplicial es la dimensión máxima de los símplices
         self.d = max(s.dimension for s in simplices) if simplices else 0
 
     # Definimos las caras del complejo simplicial usando las caras de los símplices maximales
     def calcular_caras(self):
         caras = set()
+        #Añadimos las caras de cada símplice. Las caras de cada símplice ya las calculamos en la clase Simplice
         for s in self.simplices:
             for cara in s.caras:
                 caras.add(cara)
-        return sorted(caras, key=lambda x: x)
-    
-    # Permite extraer las caras de dimensión n
+        return sorted(caras, key=lambda x: x) #lambda expression, recibe x y lo devuelve sin cambiarlo
+
+    # Este metodo permite extraer las caras de dimensión n
     def n_caras(self, n):
         if n < 0 or n > self.d:
             print(f"No hay caras de dimensión {n} en el complejo.")
             return []
         else:
+            #Miramos en nuestro atributo c (en el que se almacenan todas las caras del complejo simplicial) si tienen
+            #dimension n y la añadimos
             caras_n = sorted(set([cara for cara in self.c if len(cara) == n+1]), key=lambda x: x)
             print(f"Caras de dimensión {n}: {caras_n}")
             return caras_n
     
-    # Para poder imprimir las caras y la dimensión del complejo
+    # Los siguientes métodos son para poder imprimir las caras y la dimensión del complejo
     def caras(self):
         print(f"Caras del complejo: {self.c}")
 
