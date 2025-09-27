@@ -69,14 +69,16 @@ class Complejo_simplicial:
             chi += (-1) ** i * len(self.caras_por_dimension()[i])
         print(f"Característica de Euler: {chi}")
         return chi
-    
+
+    #La estrella de un símplice c es el conjunto de todas las cocaras de c
     def estrella(self, c):
         # Todas las caras que contienen a c
         estrella = set([cara for cara in self.c if set(c).issubset(set(cara))])
         estrella = sorted(estrella, key=lambda x: x)
         print(f"Estrella de {c}: {estrella}")
         return estrella
-    
+
+    #La estrella cerrada de c es el menor subcomplejo de K que contiene a la estrella de c.
     def estrella_cerrada(self, c):
         # Encuentra todas las caras que contienen al menos un vértice de c
         caras_con_v = [cara for cara in self.c if any(v in cara for v in c)]
@@ -89,7 +91,9 @@ class Complejo_simplicial:
         estrella_cerrada = sorted(estrella_cerrada, key=lambda x: x)
         print(f"Estrella cerrada de {c}: {estrella_cerrada}")
         return estrella_cerrada
-    
+
+    #El link de un símplice c es el conjunto de todos los símplices de la estrella cerrada de c
+    #cuya intersección con la estrella de c es vacía
     def link(self, c):
         estrella_cerrada = self.estrella_cerrada(c)
         estrella = self.estrella(c)
