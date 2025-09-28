@@ -101,6 +101,17 @@ class Complejo_simplicial:
         print(f"Link de {c}: {link}")
         return link
 
+    def j_esqueleto(self, j):
+        # Comprobamos que j es válido
+        if j < 0 or j > self.d:
+            print(f"No hay esqueleto de dimensión {j} en el complejo.")
+            return []
+        else:
+            #Añadimos aquellas caras que tengan una longitud menor o igual a j+1
+            esqueleto = sorted(set([cara for cara in self.c if len(cara) <= j + 1]), key=lambda x: x)
+            print(f"Esqueleto de dimensión {j}: {esqueleto}")
+            return esqueleto
+
     def componentes_conexas(self):
         visited = set()
         components = []
@@ -124,25 +135,20 @@ class Complejo_simplicial:
         print(f"Componentes conexas: {components}")
         return components
 
-    def j_esqueleto(self, j):
-        # Comprobamos que j es válido
-        if j < 0 or j > self.d:
-            print(f"No hay esqueleto de dimensión {j} en el complejo.")
-            return []
-        else:
-            esqueleto = sorted(set([cara for cara in self.c if len(cara) <= j + 1]), key=lambda x: x)
-            print(f"Esqueleto de dimensión {j}: {esqueleto}")
-            return esqueleto
-    
+    #Calculamos el número de componentes conexas
+    def connected_components(self):
+        componentes = self.componentes_conexas()
+        return len(componentes)
+
     # El complejo será conexo si tiene una única componente conexa
     def es_conexo(self):
-        componentes = self.componentes_conexas()
-        if len(componentes) == 1:
+        if self.connected_components() == 1:
             print("El complejo es conexo.")
             return True
         else:
             print("El complejo no es conexo.")
             return False
+
 
 # Ejemplo de uso
 if __name__ == "__main__":
