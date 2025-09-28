@@ -137,8 +137,7 @@ class Complejo_simplicial:
 
     #Calculamos el número de componentes conexas
     def connected_components(self):
-        componentes = self.componentes_conexas()
-        return len(componentes)
+        return len(self.componentes_conexas())
 
     # El complejo será conexo si tiene una única componente conexa
     def es_conexo(self):
