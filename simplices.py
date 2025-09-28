@@ -171,3 +171,5 @@ if __name__ == "__main__":
     complejo.link((2,))
     complejo.componentes_conexas()
     complejo.j_esqueleto(1)
+    complejo.connected_components()
+    complejo.es_conexo()
