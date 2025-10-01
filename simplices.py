@@ -147,6 +147,16 @@ class Complejo_simplicial:
         else:
             print("El complejo no es conexo.")
             return False
+        
+    def add(self, simplices):
+        for s in simplices:
+            self.simplices.add(s)
+        self.c = self.calcular_caras()
+        self.d = max(s.dimension for s in self.simplices) if self.simplices else 0
+
+class Complejo_simplicial_flotante(Complejo_simplicial):
+    def __init__(self, simplices):
+        super().__init__(simplices) 
 
 
 # Ejemplo de uso
