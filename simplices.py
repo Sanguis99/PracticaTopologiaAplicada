@@ -246,7 +246,7 @@ if __name__ == "__main__":
     s2 = Simplice([2,3])
     s3 = Simplice([4])
     # Creamos el complejo simplicial
-    complejo = Complejo_simplicial([s1, s2,s3])
+    complejo = Complejo_simplicial([s1, s2, s3])
     # Probamos los métodos
     print("####################################################")
     print("#         Ejercicio Complejos Simpliciales         #")
