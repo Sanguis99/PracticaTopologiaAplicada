@@ -203,7 +203,10 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
                 raise ValueError("Todos los elementos deben ser de tipo Simplice_filtrado")
         super().__init__(simplices_filtrados)
         # Ordenamos los símplices primero por índice de filtrado y luego por dimensión
-        self.simplices_ordenados = sorted(self.simplices, key=lambda s: (s.index, s.dimension))
+        self.update_simplices_ordenados()
+
+    def update_simplices_ordenados(self):
+        self.simplices_ordenados = sorted(self.simplices, key=lambda x: (x.index, x.dimension))
 
     # Insertar un conjunto de símplices con el mismo índice de filtrado
     def insert_filtrado(self, simplices, index):
@@ -219,6 +222,8 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
             self.simplices.add(s1)
         self.c = self.calcular_caras()
         self.d = max(s.dimension for s in self.simplices) if self.simplices else 0
+        self.update_simplices_ordenados()
+
 
     def simplices_por_filtrado_aux(self, index):
         sf = sorted([s for s in self.simplices if s.index <= index], key=lambda x: (x.index, x.dimension))
@@ -266,3 +271,4 @@ if __name__ == "__main__":
     csf.caras_por_dimension()
     csf.simplices_por_filtrado(0)
     csf.simplices_por_filtrado(1)
+    print(f"Simplices ordenados: {[(s.vertices, s.index) for s in csf.simplices_ordenados]}")
