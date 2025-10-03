@@ -154,9 +154,16 @@ class Complejo_simplicial:
         self.c = self.calcular_caras()
         self.d = max(s.dimension for s in self.simplices) if self.simplices else 0
 
-class Complejo_simplicial_flotante(Complejo_simplicial):
+class Complejo_simplicial_filtrado(Complejo_simplicial):
     def __init__(self, simplices):
-        super().__init__(simplices) 
+        super().__init__(simplices)
+
+    def add_flotante(self, )
+
+class Simplice_filtrado(Simplice):
+    def __init__(self, vertices, index):
+        super().__init__(vertices)
+        self.index = float(index)
 
 
 # Ejemplo de uso
