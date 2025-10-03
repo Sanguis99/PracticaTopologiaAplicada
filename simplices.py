@@ -3,7 +3,7 @@ from itertools import combinations # Para crear las caras dados los vertices
 # Información sobre los headers de las funciones:
 # Las funciones xx_aux() se usan para calcular xx y devolver el resultado.
 # Las funciones xx() se usan para imprimir el resultado de xx_aux().
-# A excepción de caras_por_dimension() que usa n_caras().
+# A excepción de caras_por_dimension() que usa n_caras() como auxiliar.
 # De esta forma, si se quiere usar el resultado de xx en otro código,
 # se puede usar xx_aux() sin que imprima nada por pantalla
 
@@ -183,6 +183,9 @@ class Complejo_simplicial:
         
     def insert(self, simplices):
         for s in simplices:
+            # Evitamos añadir símplices repetidos
+            if any(set(s.vertices) == set(existing.vertices) for existing in self.simplices):
+                continue
             self.simplices.add(s)
         self.c = self.calcular_caras()
         self.d = max(s.dimension for s in self.simplices) if self.simplices else 0
@@ -206,6 +209,13 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
     def insert_filtrado(self, simplices, index):
         for s in simplices:
             s1 = Simplice_filtrado(s.vertices, index)
+            # Si ya existe un símplice con los mismos vértices, mantenemos el de menor índice
+            if any(set(s1.vertices) == set(existing.vertices) for existing in self.simplices):
+                e = [existing for existing in self.simplices if set(s1.vertices) == set(existing.vertices)][0]
+                if s1.index < e.index:
+                    self.simplices.remove(e)
+                else:
+                    continue
             self.simplices.add(s1)
         self.c = self.calcular_caras()
         self.d = max(s.dimension for s in self.simplices) if self.simplices else 0
@@ -251,6 +261,7 @@ if __name__ == "__main__":
     csf = Complejo_simplicial_filtrado([])
     csf.insert_filtrado([s1, s2], 0)
     csf.insert_filtrado([s3], 1)
+    csf.insert_filtrado([s1], 0.5)
     csf.caras()
     csf.caras_por_dimension()
     csf.simplices_por_filtrado(0)
