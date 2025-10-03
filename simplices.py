@@ -238,7 +238,7 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
         return sf
 
 
-# Ejemplo de uso
+###################################### Ejemplo de Uso ######################################
 if __name__ == "__main__":
     # Definimos los símplices maximales del complejo
     # Por manejo más sencillo, los vértices son enteros
