@@ -7,6 +7,7 @@ from itertools import combinations # Para crear las caras dados los vertices
 # De esta forma, si se quiere usar el resultado de xx en otro código,
 # se puede usar xx_aux() sin que imprima nada por pantalla
 
+###################################### CLASE 1 ######################################
 # Clase de los simplices
 class Simplice:
     def __init__(self, vertices):
@@ -58,7 +59,7 @@ class Complejo_simplicial:
     def dimension(self):
         print(f"Dimensión del complejo: {self.d}")
 
-    ################################# CLASE 2 #######################################
+###################################### CLASE 2 ######################################
     # Calculamos el número de caras por dimensión
     def caras_por_dimension(self):
         caras_dim = [self.n_caras(i) for i in range(self.d + 1)]
@@ -190,6 +191,7 @@ class Complejo_simplicial:
         self.c = self.calcular_caras()
         self.d = max(s.dimension for s in self.simplices) if self.simplices else 0
 
+###################################### CLASE 3 ######################################
 class Simplice_filtrado(Simplice):
     def __init__(self, vertices, index):
         super().__init__(vertices)
