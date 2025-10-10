@@ -1,4 +1,5 @@
 from itertools import combinations # Para crear las caras dados los vertices
+import numpy as np
 
 # Información sobre los headers de las funciones:
 # Las funciones xx_aux() se usan para calcular xx y devolver el resultado.
@@ -236,6 +237,58 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
         sf = self.simplices_por_filtrado_aux(index)
         print(f"Símplices con índice de filtrado menor o igual a {index}: {[ (s.vertices, s.index) for s in sf ]}")
         return sf
+
+
+    ###################################### Clase 4 ######################################
+
+    # Función que calcula la filtración de complejos de Vietoris-Rips
+    # El r, que es 1/2 del diámetro del complejo simplicial, será nuestro index, es decir que será tb el número de cada
+    # filtración.
+    # Por tanto, hay que crear los vértices como puntos, para poder calcular las distancias entre ellos con la norma.
+    # El problema que veo es que las coordenadas tienen que ser de dimensión n, pero qué pasa cuando la dimensión cambia
+    # al añadir símplices?
+
+    # Deberíamos hacer herencia de clases o deberíamos modificar la clase inicial.
+    # Voy a intentar hacer herencia de clases para no tener que modificar el código anterior y para que quede más limpio.
+
+    # En clase han hablado de matrices
+
+    # Añadimos la clase Punto, la cual contiene los campos vértice y coordenadas.
+    class Punto:
+        def __init__(self, nombre, coords):
+            self.vertice = nombre
+            self.coords = np.array(coords)
+
+        def distancia(self, otro):
+            return np.linalg.norm(self.coords - otro.coords)
+
+        def __repr__(self):
+            return f"{self.vertice}{tuple(self.coords)}"
+
+    class Simplice_geometrico(Simplice):
+        def __init__(self, puntos):
+            # aquí puntos será una lista de objetos Punto
+            super().__init__([p.vertice for p in puntos])
+            self.puntos = puntos
+            #self.distancia_max =
+
+
+        #def calculo_distancias(self):
+            #distancias = set()
+            #n = len(self.puntos)
+            #for tupla in combinations(self.puntos, 2):
+
+    class Complejo_simplicial_geometrico(Complejo_simplicial):
+        def __init__(self, simplices):
+            super().__init__(simplices)
+            self.diametro = max( s.distancia_max for s in self.simplices)
+
+
+
+
+
+
+
 
 
 ###################################### Ejemplo de Uso ######################################
