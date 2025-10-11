@@ -254,36 +254,47 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
     # En clase han hablado de matrices
 
     # Añadimos la clase Punto, la cual contiene los campos vértice y coordenadas.
-    class Punto:
-        def __init__(self, nombre, coords):
-            self.vertice = nombre
-            self.coords = np.array(coords)
+class Punto:
+    def __init__(self, nombre, coords):
+        self.vertice = nombre
+        self.coords = np.array(coords)
 
-        def distancia(self, otro):
-            return np.linalg.norm(self.coords - otro.coords)
+    def distancia(self, otro):
+        return np.linalg.norm(self.coords - otro.coords)
 
-        def __repr__(self):
-            return f"{self.vertice}{tuple(self.coords)}"
+    def __repr__(self):
+        return f"{self.vertice}{tuple(self.coords)}"
 
-    class Simplice_geometrico(Simplice):
-        def __init__(self, puntos):
-            # aquí puntos será una lista de objetos Punto
-            super().__init__([p.vertice for p in puntos])
-            self.puntos = puntos
-            self.distancias = self.calculo_distancias()
-            self.distancia_max = max(self.distancias) if self.distancias else 0
+class Simplice_geometrico(Simplice):
+    def __init__(self, puntos):
+        # aquí puntos será una lista de objetos Punto
+        super().__init__([p.vertice for p in puntos])
+        self.puntos = puntos
+        self.distancias = self.calculo_distancias()
+        self.distancia_max = max(self.distancias) if self.distancias else 0
 
 
-        def calculo_distancias(self):
-            distancias = set()
-            for tupla in combinations(self.puntos,2):
-                distancias.add(np.linalg.norm(tupla[0].coords - tupla[1].coords))
-            return distancias
+    def calculo_distancias(self):
+        distancias = set()
+        for tupla in combinations(self.puntos,2):
+            distancias.add(np.linalg.norm(tupla[0].coords - tupla[1].coords))
+        return distancias
 
-    class Complejo_simplicial_geometrico(Complejo_simplicial):
-        def __init__(self, simplices):
-            super().__init__(simplices)
-            self.diametro = max(( s.distancia_max for s in self.simplices), default=0)
+class Complejo_simplicial_geometrico(Complejo_simplicial):
+    def __init__(self, simplices):
+        super().__init__(simplices)
+        self.diametro = max(( s.distancia_max for s in self.simplices), default=0)
+        self.distancias = [s.distancias for s in self.simplices]
+
+    def get_distancia_max(self):
+        print(f"Diámetro del complejo: {self.diametro} ")
+
+    def get_distancias(self):
+        for s in self.simplices:
+            dist = [round(float(d), 3) for d in s.distancias]
+            print(f"Símplice {s.vertices}: distancias = {dist}")
+
+
 
 
 
@@ -335,3 +346,9 @@ if __name__ == "__main__":
     print("####################################################")
     print("#    Ejercicio Complejos Simpliciales Geométricos    #")
     print("####################################################")
+    csg = Complejo_simplicial_geometrico([Simplice_geometrico([Punto(1, (0,0)), Punto(2, (1,0))])])
+    csg.caras()
+    csg.get_distancia_max()
+    csg.get_distancias()
+
+
