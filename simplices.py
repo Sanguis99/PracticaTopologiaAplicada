@@ -270,18 +270,23 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
             # aquí puntos será una lista de objetos Punto
             super().__init__([p.vertice for p in puntos])
             self.puntos = puntos
-            #self.distancia_max =
+            self.distancias = self.calculo_distancias()
+            self.distancia_max = max(self.distancias) if self.distancias else 0
 
 
-        #def calculo_distancias(self):
-            #distancias = set()
-            #n = len(self.puntos)
-            #for tupla in combinations(self.puntos, 2):
+        def calculo_distancias(self):
+            distancias = set()
+            for tupla in combinations(self.puntos,2):
+                distancias.add(np.linalg.norm(tupla[0].coords - tupla[1].coords))
+            return distancias
 
     class Complejo_simplicial_geometrico(Complejo_simplicial):
         def __init__(self, simplices):
             super().__init__(simplices)
-            self.diametro = max( s.distancia_max for s in self.simplices)
+            self.diametro = max(( s.distancia_max for s in self.simplices), default=0)
+
+
+
 
 
 
@@ -327,3 +332,6 @@ if __name__ == "__main__":
     csf.simplices_por_filtrado(0)
     csf.simplices_por_filtrado(1)
     print(f"Simplices ordenados: {[(s.vertices, s.index) for s in csf.simplices_ordenados]}")
+    print("####################################################")
+    print("#    Ejercicio Complejos Simpliciales Geométricos    #")
+    print("####################################################")
