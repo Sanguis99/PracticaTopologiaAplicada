@@ -1,5 +1,10 @@
 from itertools import combinations # Para crear las caras dados los vertices
 import numpy as np
+#Bibliotecas usadas en los ejemplos de Voronoi y Delaunay
+from scipy.spatial import Delaunay,Voronoi, voronoi_plot_2d
+import matplotlib.pyplot as plt
+import matplotlib.colors
+import matplotlib as mpl
 
 # Información sobre los headers de las funciones:
 # Las funciones xx_aux() se usan para calcular xx y devolver el resultado.
@@ -12,7 +17,13 @@ import numpy as np
 # Clase de los simplices
 class Simplice:
     def __init__(self, vertices):
-        self.vertices = vertices
+        vert = []
+        for v in vertices:
+            try:
+                vert.append(int(v))
+            except Exception:
+                vert.append(v)
+        self.vertices = vert
         self.caras = self.calcular_caras()
         self.dimension = len(vertices) - 1
 
@@ -209,7 +220,7 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
         self.update_simplices_ordenados()
 
     def update_simplices_ordenados(self):
-        self.simplices_ordenados = sorted(self.simplices, key=lambda x: (x.index, x.dimension))
+        self.simplices_ordenados = sorted(self.simplices, key=lambda x: (x.index, x.dimension, x.vertices))
 
     # Insertar un conjunto de símplices con el mismo índice de filtrado
     def insert_filtrado(self, simplices, index):
@@ -241,19 +252,7 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
 
     ###################################### Clase 4 ######################################
 
-    # Función que calcula la filtración de complejos de Vietoris-Rips
-    # El r, que es 1/2 del diámetro del complejo simplicial, será nuestro index, es decir que será tb el número de cada
-    # filtración.
-    # Por tanto, hay que crear los vértices como puntos, para poder calcular las distancias entre ellos con la norma.
-    # El problema que veo es que las coordenadas tienen que ser de dimensión n, pero qué pasa cuando la dimensión cambia
-    # al añadir símplices?
-
-    # Deberíamos hacer herencia de clases o deberíamos modificar la clase inicial.
-    # Voy a intentar hacer herencia de clases para no tener que modificar el código anterior y para que quede más limpio.
-
-    # En clase han hablado de matrices
-
-    # Añadimos la clase Punto, la cual contiene los campos vértice y coordenadas.
+# Añadimos la clase Punto, la cual contiene los campos vértice y coordenadas.
 class Punto:
     def __init__(self, nombre, coords):
         self.vertice = nombre
@@ -265,47 +264,96 @@ class Punto:
     def __repr__(self):
         return f"{self.vertice}{tuple(self.coords)}"
 
-class Simplice_geometrico(Simplice):
-    def __init__(self, puntos):
-        # aquí puntos será una lista de objetos Punto
-        super().__init__([p.vertice for p in puntos])
-        self.puntos = puntos
-        self.distancias = self.calculo_distancias()
-        self.distancia_max = max(self.distancias) if self.distancias else 0
-
-
-    def calculo_distancias(self):
-        distancias = set()
-        for tupla in combinations(self.puntos,2):
-            distancias.add(np.linalg.norm(tupla[0].coords - tupla[1].coords))
-        return distancias
-
-class Complejo_simplicial_geometrico(Complejo_simplicial):
-    def __init__(self, simplices):
-        super().__init__(simplices)
-        self.diametro = max(( s.distancia_max for s in self.simplices), default=0)
-        self.distancias = [s.distancias for s in self.simplices]
-
-    def get_distancia_max(self):
-        print(f"Diámetro del complejo: {self.diametro} ")
-
-    def get_distancias(self):
-        for s in self.simplices:
-            dist = [round(float(d), 3) for d in s.distancias]
-            print(f"Símplice {s.vertices}: distancias = {dist}")
+# Clase de Complejo de Vietoris-Rips
+class Complejo_Vietoris_Rips:
+    def __init__(self, points):
+        self.puntos = points  # points es una lista de objetos Punto
+        self.space_dimension = len(points[0].coords) if points else 0 # Dimensión del espacio en el que están los puntos
 
 
 
+    def r_complex_aux(self, r):
+        complex = Complejo_simplicial_filtrado([])
+        simplices = []
+        for i in range(1, self.space_dimension + 2): # El simplice más grande es con n+1 puntos
+            for c in combinations(self.puntos, i): # Todas las combinaciones de i puntos
+                if self.verifica_radio(c, r): # dist <= 2r
+                    simplices.append(Simplice_filtrado(self.vertices(c), r))
+        complex.insert_filtrado(simplices, r) # Los añadimos con tiempo r
+        return complex
+    
+    def r_complex(self, r):
+        complex = self.r_complex_aux(r)
+        print(f"Complejo de Vietoris-Rips para r = {r}: {[ (s.vertices, s.index) for s in complex.simplices_ordenados ]}")
+        return complex
+    
+    # Comprueba que no haya ninguna distancia entre puntos mayor a 2r
+    def verifica_radio(self, puntos, r):
+        for p1, p2 in combinations(puntos, 2):
+            if p1.distancia(p2) > 2 * r: # dist <= 2r
+                return False
+        return True
+    
+    def vertices(self, puntos):
+        return [p.vertice for p in puntos]
 
+###################################### Clase 5 ######################################
 
+# Debemos crearnos una función que calcule la filtración de alfa complejos asociada a un conjunto de puntos en el plano
+class AlfaComplejo:
+    def __init__(self, points, radius):
+        self.puntos = points  # points es una lista de objetos Punto
+        self.coords_puntos = np.array([p.coords for p in points])
+        self.complex = self.alfa_complejo(radius)
+        self.radius = radius
 
+    def alfa_complejo(self, r):
+        Del = Delaunay(self.coords_puntos)  
+        simplices = []
+        for s in Del.simplices:  # lista de triángulos de Delaunay
+            arr_dist_aristas = [self.puntos[s[i]].distancia(self.puntos[s[(i+1)%3]]) for i in range(3)] # [6 3 9] -> [63 39 96] -> [dist(6,3), dist(3,9), dist(9,6)]
+            if all(d <= 2*r for d in arr_dist_aristas):
+                simplices.append(Simplice_filtrado([s[0], s[1], s[2]], r))
+            # Comprobamos las aristas
+            else:
+                for i in range(3):
+                    d = arr_dist_aristas[i]
+                    if d <= 2*r: # Primer caso de aristas
+                        simplices.append(Simplice_filtrado(sorted([s[i], s[(i+1)%3]]), r))
+                        # No hay segundo caso ya que la arista se añadira con el triangulo, y puesto que hemos comprobado antes si se añade el triángulo o no
+                        # no hace falta volver a comprobarlo.
+                    else: # Si no están ni la arista ni el triángulo, añadimos los vértices
+                        simplices.append(Simplice_filtrado([s[i]], r))
+        complejo = Complejo_simplicial_filtrado([])
+        complejo.insert_filtrado(simplices, r)
+        return complejo
 
+    def show_voronoi_delaunay(self):
+        vor = Voronoi(self.coords_puntos)
+        Del = Delaunay(self.coords_puntos)
+        fig = voronoi_plot_2d(vor,show_vertices=False,line_width=2, line_colors='blue' )
+        c=np.ones(len(self.coords_puntos))
+        cmap = matplotlib.colors.ListedColormap("limegreen")
+        plt.tripcolor(self.coords_puntos[:,0],self.coords_puntos[:,1],Del.simplices, c, edgecolor="k", lw=2,
+        cmap=cmap)
+        plt.plot(self.coords_puntos[:,0], self.coords_puntos[:,1], 'ko')
+        plt.show()
+    
+    # Hay que revisarla
+    def show_voronoi_alfa(self):
+        vor = Voronoi(self.coords_puntos)
+        fig = voronoi_plot_2d(vor,show_vertices=False,line_width=2, line_colors='blue' )
+        # Aqui añadimos como dibujar alfa complejo
+        c=np.ones(len(self.coords_puntos))
+        cmap = matplotlib.colors.ListedColormap("limegreen")
+        plt.tripcolor(self.coords_puntos[:,0],self.coords_puntos[:,1],self.complex.simplices, c, edgecolor="k", lw=2,
+        cmap=cmap)
+        plt.plot(self.coords_puntos[:,0], self.coords_puntos[:,1], 'ko')
+        plt.show()
 
-
-
-
-
-
+    def print_complex(self):
+        print(f"Alfa complejo con radio {self.radius}: {[ (s.vertices, s.index) for s in self.complex.simplices_ordenados ]}")
+        return self.complex
 
 ###################################### Ejemplo de Uso ######################################
 if __name__ == "__main__":
@@ -344,11 +392,18 @@ if __name__ == "__main__":
     csf.simplices_por_filtrado(1)
     print(f"Simplices ordenados: {[(s.vertices, s.index) for s in csf.simplices_ordenados]}")
     print("####################################################")
-    print("#    Ejercicio Complejos Simpliciales Geométricos    #")
+    print("#             Ejercicios Vietoris-Rips             #")
     print("####################################################")
-    csg = Complejo_simplicial_geometrico([Simplice_geometrico([Punto(1, (0,0)), Punto(2, (1,0))])])
-    csg.caras()
-    csg.get_distancia_max()
-    csg.get_distancias()
-
-
+    vr = Complejo_Vietoris_Rips([Punto(0, (0,0)), Punto(1, (1,0)), Punto(2, (0,1)), Punto(3, (1,1))])
+    vr.r_complex(0)
+    vr.r_complex(0.25)
+    vr.r_complex(0.5)
+    vr.r_complex(1)
+    print("####################################################")
+    print("#             Ejercicios Alfa-Complejos            #")
+    print("####################################################")
+    points = np.random.rand(10,2)
+    p = [Punto(i, points[i]) for i in range(len(points))]
+    ac = AlfaComplejo(p, 0.2)
+    ac.print_complex()
+    ac.show_voronoi_delaunay()
