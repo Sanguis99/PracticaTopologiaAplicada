@@ -209,6 +209,13 @@ class Simplice_filtrado(Simplice):
         super().__init__(vertices)
         self.index = float(index)
 
+    def n_caras(self, n):
+        if n < 0 or n > self.dimension:
+            return Exception
+        else:
+            caras_n = sorted(set([cara for cara in self.caras if len(cara) == n+1]), key=lambda x: x)
+            return caras_n
+
 class Complejo_simplicial_filtrado(Complejo_simplicial):
     def __init__(self, simplices_filtrados):
         # Comprobamos que todos los elementos son de tipo Simplice_filtrado
@@ -342,15 +349,38 @@ class AlfaComplejo:
     # Hay que revisarla
     def show_voronoi_alfa(self):
         vor = Voronoi(self.coords_puntos)
-        fig = voronoi_plot_2d(vor,show_vertices=False,line_width=2, line_colors='blue' )
-        # Aqui añadimos como dibujar alfa complejo
-        c=np.ones(len(self.coords_puntos))
-        cmap = matplotlib.colors.ListedColormap("limegreen")
-        plt.tripcolor(self.coords_puntos[:,0],self.coords_puntos[:,1],self.complex.simplices, c, edgecolor="k", lw=2,
-        cmap=cmap)
-        plt.plot(self.coords_puntos[:,0], self.coords_puntos[:,1], 'ko')
+        fig = voronoi_plot_2d(vor, show_vertices=False, line_width=2, line_colors='blue')
+        # Ya dibujado el diagrama de Voronoi, dibujamos el alfa complejo
+        p = self.coords_puntos
+        aristas = set()
+        triangulos = set()
+        for s in self.complex.simplices_ordenados:
+            # Intentamos extraer las aristas y triángulos
+            try:
+                for e in s.n_caras(1):
+                    aristas.add(tuple(int(v) for v in e))
+                for t in s.n_caras(2):
+                    triangulos.add(tuple(int(v) for v in t))
+            except Exception:
+                pass
+        # Dibujamos los triángulos si existen
+        if triangulos:
+            for tri in triangulos:
+                coords = p[list(tri)]
+                plt.fill(coords[:, 0], coords[:, 1], facecolor='limegreen', edgecolor='k', alpha=0.3)
+        # Dibujamos las aristas, incluidas las que ya dibujo el triangulo para que todas tengan la misma forma
+        if aristas:
+            for edge in aristas:
+                xs = p[list(edge), 0]
+                ys = p[list(edge), 1]
+                plt.plot(xs, ys, color='k', linewidth=2)
+        # Por ultimo dibujamos los puntos
+        plt.plot(p[:, 0], p[:, 1], 'ko')
+        # Obtenemos el sistema de coordenadas haciendo que una unidad en x valga lo mismo que una en y
+        plt.gca().set_aspect('equal', adjustable='box')
         plt.show()
 
+    # Imprime el complejo alfa
     def print_complex(self):
         print(f"Alfa complejo con radio {self.radius}: {[ (s.vertices, s.index) for s in self.complex.simplices_ordenados ]}")
         return self.complex
@@ -404,6 +434,7 @@ if __name__ == "__main__":
     print("####################################################")
     points = np.random.rand(10,2)
     p = [Punto(i, points[i]) for i in range(len(points))]
-    ac = AlfaComplejo(p, 0.2)
+    ac = AlfaComplejo(p, 0.25)
     ac.print_complex()
-    ac.show_voronoi_delaunay()
+    #ac.show_voronoi_delaunay()
+    ac.show_voronoi_alfa()
