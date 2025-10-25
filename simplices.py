@@ -306,7 +306,7 @@ class Complejo_Vietoris_Rips:
 
 ###################################### Clase 5 ######################################
 
-# Debemos crearnos una función que calcule la filtración de alfa complejos asociada a un conjunto de puntos en el plano
+# Debemos crearnos una función que calcule la filtración de alfa-complejos asociada a un conjunto de puntos en el plano
 class AlfaComplejo:
     def __init__(self, points, radius):
         self.puntos = points  # points es una lista de objetos Punto
@@ -331,8 +331,17 @@ class AlfaComplejo:
                         # no hace falta volver a comprobarlo.
                     else: # Si no están ni la arista ni el triángulo, añadimos los vértices
                         simplices.append(Simplice_filtrado([s[i]], r))
+        # Comprobamos que no haya ninguna cara que ya sea añadida por otra del complejo
+        s_aux = []
+        # Recorremos los símplices ordenados por dimensión decreciente
+        for s in sorted(simplices, key=lambda x: len(x.vertices), reverse=True):
+            # Una cara ya está añadida si sus vértices son un subconjunto de los vértices de algún símplice ya añadido
+            if any(set(s.vertices).issubset(set(existing.vertices)) for existing in s_aux):
+                continue
+            # Si no está añadida, la añadimos
+            s_aux.append(s)
         complejo = Complejo_simplicial_filtrado([])
-        complejo.insert_filtrado(simplices, r)
+        complejo.insert_filtrado(s_aux, r)
         return complejo
 
     def show_voronoi_delaunay(self):
@@ -350,7 +359,7 @@ class AlfaComplejo:
     def show_voronoi_alfa(self):
         vor = Voronoi(self.coords_puntos)
         fig = voronoi_plot_2d(vor, show_vertices=False, line_width=2, line_colors='blue')
-        # Ya dibujado el diagrama de Voronoi, dibujamos el alfa complejo
+        # Ya dibujado el diagrama de Voronoi, dibujamos el alfa-complejo
         p = self.coords_puntos
         aristas = set()
         triangulos = set()
@@ -382,8 +391,15 @@ class AlfaComplejo:
 
     # Imprime el complejo alfa
     def print_complex(self):
-        print(f"Alfa complejo con radio {self.radius}: {[ (s.vertices, s.index) for s in self.complex.simplices_ordenados ]}")
+        print(f"Alfa-complejo con radio {self.radius}: {[ (s.vertices, s.index) for s in self.complex.simplices_ordenados ]}")
         return self.complex
+    
+    def print_points(self):
+        print("Puntos del alfa-complejo:")
+        for pt in self.puntos:
+            x, y = pt.coords
+            print(f"{pt.vertice}: ({float(x):.4f}, {float(y):.4f})")
+        return self.puntos
 
 ###################################### Ejemplo de Uso ######################################
 if __name__ == "__main__":
@@ -436,5 +452,6 @@ if __name__ == "__main__":
     p = [Punto(i, points[i]) for i in range(len(points))]
     ac = AlfaComplejo(p, 0.25)
     ac.print_complex()
-    #ac.show_voronoi_delaunay()
+    ac.print_points()
+    # ac.show_voronoi_delaunay()
     ac.show_voronoi_alfa()
