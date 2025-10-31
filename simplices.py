@@ -1,5 +1,11 @@
-from itertools import combinations # Para crear las caras dados los vertices
+from itertools import combinations  # Para crear las caras dados los vertices
 import numpy as np
+# Bibliotecas usadas en los ejemplos de Voronoi y Delaunay
+from scipy.spatial import Delaunay, Voronoi, voronoi_plot_2d
+import matplotlib.pyplot as plt
+import matplotlib.colors
+import matplotlib as mpl
+
 
 # Información sobre los headers de las funciones:
 # Las funciones xx_aux() se usan para calcular xx y devolver el resultado.
@@ -12,7 +18,13 @@ import numpy as np
 # Clase de los simplices
 class Simplice:
     def __init__(self, vertices):
-        self.vertices = vertices
+        vert = []
+        for v in vertices:
+            try:
+                vert.append(int(v))
+            except Exception:
+                vert.append(v)
+        self.vertices = vert
         self.caras = self.calcular_caras()
         self.dimension = len(vertices) - 1
 
@@ -25,6 +37,7 @@ class Simplice:
             for cara in combinations(self.vertices, k):
                 caras.add(tuple(cara))
         return caras
+
 
 # Clase de los complejos simpliciales
 class Complejo_simplicial:
@@ -41,7 +54,7 @@ class Complejo_simplicial:
         for s in self.simplices:
             for cara in s.caras:
                 caras.add(cara)
-        return sorted(caras, key=lambda x: x) # lambda expression que ordena las caras por su valor inicial
+        return sorted(caras, key=lambda x: x)  # lambda expression que ordena las caras por su valor inicial
 
     # Este metodo permite extraer las caras de dimensión n
     def n_caras(self, n):
@@ -50,9 +63,9 @@ class Complejo_simplicial:
             return []
         else:
             # Miramos en nuestro atributo c (Caras del complejo simplicial) si tienen dimensión n y la añadimos
-            caras_n = sorted(set([cara for cara in self.c if len(cara) == n+1]), key=lambda x: x)
+            caras_n = sorted(set([cara for cara in self.c if len(cara) == n + 1]), key=lambda x: x)
             return caras_n
-    
+
     # Los siguientes métodos son para poder imprimir las caras y la dimensión del complejo
     def caras(self):
         print(f"Caras del complejo: {self.c}")
@@ -60,7 +73,7 @@ class Complejo_simplicial:
     def dimension(self):
         print(f"Dimensión del complejo: {self.d}")
 
-###################################### CLASE 2 ######################################
+    ###################################### CLASE 2 ######################################
     # Calculamos el número de caras por dimensión
     def caras_por_dimension(self):
         caras_dim = [self.n_caras(i) for i in range(self.d + 1)]
@@ -84,6 +97,7 @@ class Complejo_simplicial:
         estrella = set([cara for cara in self.c if set(c).issubset(set(cara))])
         estrella = sorted(estrella, key=lambda x: x)
         return estrella
+
     # Usamos la función auxiliar para calcular la estrella
     # y luego la imprimimos
     def estrella(self, c):
@@ -99,11 +113,12 @@ class Complejo_simplicial:
         # Añade todas las subcaras de esas caras
         estrella_cerrada = set()
         for cara in caras_con_v:
-            for k in range(1, len(cara)+1):
+            for k in range(1, len(cara) + 1):
                 for subcara in combinations(cara, k):
                     estrella_cerrada.add(tuple(sorted(subcara)))
         estrella_cerrada = sorted(estrella_cerrada, key=lambda x: x)
         return estrella_cerrada
+
     # Usamos la función auxiliar para calcular la estrella cerrada
     # y luego la imprimimos
     def estrella_cerrada(self, c):
@@ -118,6 +133,7 @@ class Complejo_simplicial:
         estrella = self.estrella_aux(c)
         link = [cara for cara in estrella_cerrada if cara not in estrella]
         return link
+
     # Usamos la función auxiliar para calcular el link
     # y luego la imprimimos
     def link(self, c):
@@ -134,6 +150,7 @@ class Complejo_simplicial:
             # Añadimos aquellas caras que tengan una longitud menor o igual a j+1
             esqueleto = sorted(set([cara for cara in self.c if len(cara) <= j + 1]), key=lambda x: x)
             return esqueleto
+
     # Usamos la función para calcular el j-esqueleto
     # y luego la imprimimos
     def j_esqueleto(self, j):
@@ -163,6 +180,7 @@ class Complejo_simplicial:
                     bep(v, component)
                     components.append(sorted(component))
         return components
+
     # Usamos la función auxiliar para calcular las componentes conexas
     # y luego las imprimimos
     def componentes_conexas(self):
@@ -182,7 +200,7 @@ class Complejo_simplicial:
         else:
             print("El complejo no es conexo.")
             return False
-        
+
     def insert(self, simplices):
         for s in simplices:
             # Evitamos añadir símplices repetidos
@@ -192,11 +210,20 @@ class Complejo_simplicial:
         self.c = self.calcular_caras()
         self.d = max(s.dimension for s in self.simplices) if self.simplices else 0
 
+
 ###################################### CLASE 3 ######################################
 class Simplice_filtrado(Simplice):
     def __init__(self, vertices, index):
         super().__init__(vertices)
         self.index = float(index)
+
+    def n_caras(self, n):
+        if n < 0 or n > self.dimension:
+            return Exception
+        else:
+            caras_n = sorted(set([cara for cara in self.caras if len(cara) == n + 1]), key=lambda x: x)
+            return caras_n
+
 
 class Complejo_simplicial_filtrado(Complejo_simplicial):
     def __init__(self, simplices_filtrados):
@@ -209,7 +236,7 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
         self.update_simplices_ordenados()
 
     def update_simplices_ordenados(self):
-        self.simplices_ordenados = sorted(self.simplices, key=lambda x: (x.index, x.dimension))
+        self.simplices_ordenados = sorted(self.simplices, key=lambda x: (x.index, x.dimension, x.vertices))
 
     # Insertar un conjunto de símplices con el mismo índice de filtrado
     def insert_filtrado(self, simplices, index):
@@ -227,33 +254,21 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
         self.d = max(s.dimension for s in self.simplices) if self.simplices else 0
         self.update_simplices_ordenados()
 
-
     def simplices_por_filtrado_aux(self, index):
         sf = sorted([s for s in self.simplices if s.index <= index], key=lambda x: (x.index, x.dimension))
         return sf
+
     # Usamos la función auxiliar para calcular los símplices con índice de filtrado menor o igual a index
     # y luego los imprimimos
     def simplices_por_filtrado(self, index):
         sf = self.simplices_por_filtrado_aux(index)
-        print(f"Símplices con índice de filtrado menor o igual a {index}: {[ (s.vertices, s.index) for s in sf ]}")
+        print(f"Símplices con índice de filtrado menor o igual a {index}: {[(s.vertices, s.index) for s in sf]}")
         return sf
-
 
     ###################################### Clase 4 ######################################
 
-    # Función que calcula la filtración de complejos de Vietoris-Rips
-    # El r, que es 1/2 del diámetro del complejo simplicial, será nuestro index, es decir que será tb el número de cada
-    # filtración.
-    # Por tanto, hay que crear los vértices como puntos, para poder calcular las distancias entre ellos con la norma.
-    # El problema que veo es que las coordenadas tienen que ser de dimensión n, pero qué pasa cuando la dimensión cambia
-    # al añadir símplices?
 
-    # Deberíamos hacer herencia de clases o deberíamos modificar la clase inicial.
-    # Voy a intentar hacer herencia de clases para no tener que modificar el código anterior y para que quede más limpio.
-
-    # En clase han hablado de matrices
-
-    # Añadimos la clase Punto, la cual contiene los campos vértice y coordenadas.
+# Añadimos la clase Punto, la cual contiene los campos vértice y coordenadas.
 class Punto:
     def __init__(self, nombre, coords):
         self.vertice = nombre
@@ -265,54 +280,146 @@ class Punto:
     def __repr__(self):
         return f"{self.vertice}{tuple(self.coords)}"
 
-class Simplice_geometrico(Simplice):
-    def __init__(self, puntos):
-        # aquí puntos será una lista de objetos Punto
-        super().__init__([p.vertice for p in puntos])
-        self.puntos = puntos
-        self.distancias = self.calculo_distancias()
-        self.distancia_max = max(self.distancias) if self.distancias else 0
+
+# Clase de Complejo de Vietoris-Rips
+class Complejo_Vietoris_Rips:
+    def __init__(self, points):
+        self.puntos = points  # points es una lista de objetos Punto
+        self.space_dimension = len(
+            points[0].coords) if points else 0  # Dimensión del espacio en el que están los puntos
+
+    def r_complex_aux(self, r):
+        complex = Complejo_simplicial_filtrado([])
+        simplices = []
+        for i in range(1, self.space_dimension + 2):  # El simplice más grande es con n+1 puntos
+            for c in combinations(self.puntos, i):  # Todas las combinaciones de i puntos
+                if self.verifica_radio(c, r):  # dist <= 2r
+                    simplices.append(Simplice_filtrado(self.vertices(c), r))
+        complex.insert_filtrado(simplices, r)  # Los añadimos con tiempo r
+        return complex
+
+    def r_complex(self, r):
+        complex = self.r_complex_aux(r)
+        print(f"Complejo de Vietoris-Rips para r = {r}: {[(s.vertices, s.index) for s in complex.simplices_ordenados]}")
+        return complex
+
+    # Comprueba que no haya ninguna distancia entre puntos mayor a 2r
+    def verifica_radio(self, puntos, r):
+        for p1, p2 in combinations(puntos, 2):
+            if p1.distancia(p2) > 2 * r:  # dist <= 2r
+                return False
+        return True
+
+    def vertices(self, puntos):
+        return [p.vertice for p in puntos]
 
 
-    def calculo_distancias(self):
-        distancias = set()
-        for tupla in combinations(self.puntos,2):
-            distancias.add(np.linalg.norm(tupla[0].coords - tupla[1].coords))
-        return distancias
+###################################### Clase 5 ######################################
 
-class Complejo_simplicial_geometrico(Complejo_simplicial):
-    def __init__(self, simplices):
-        super().__init__(simplices)
-        self.diametro = max(( s.distancia_max for s in self.simplices), default=0)
-        self.distancias = [s.distancias for s in self.simplices]
+# Debemos crearnos una función que calcule la filtración de alfa-complejos asociada a un conjunto de puntos en el plano
+class AlfaComplejo:
+    def __init__(self, points, radius):
+        self.puntos = points  # points es una lista de objetos Punto
+        self.coords_puntos = np.array([p.coords for p in points])
+        self.complex = self.alfa_complejo(radius)
+        self.radius = radius
 
-    def get_distancia_max(self):
-        print(f"Diámetro del complejo: {self.diametro} ")
+    def alfa_complejo(self, r):
+        Del = Delaunay(self.coords_puntos)
+        simplices = []
+        for s in Del.simplices:  # lista de triángulos de Delaunay
+            arr_dist_aristas = [self.puntos[s[i]].distancia(self.puntos[s[(i + 1) % 3]]) for i in
+                                range(3)]  # [6 3 9] -> [63 39 96] -> [dist(6,3), dist(3,9), dist(9,6)]
+            if all(d <= 2 * r for d in arr_dist_aristas):
+                simplices.append(Simplice_filtrado([s[0], s[1], s[2]], r))
+            # Comprobamos las aristas
+            else:
+                for i in range(3):
+                    d = arr_dist_aristas[i]
+                    if d <= 2 * r:  # Primer caso de aristas
+                        simplices.append(Simplice_filtrado(sorted([s[i], s[(i + 1) % 3]]), r))
+                        # No hay segundo caso ya que la arista se añadira con el triangulo, y puesto que hemos comprobado antes si se añade el triángulo o no
+                        # no hace falta volver a comprobarlo.
+                    else:  # Si no están ni la arista ni el triángulo, añadimos los vértices
+                        simplices.append(Simplice_filtrado([s[i]], r))
+        # Comprobamos que no haya ninguna cara que ya sea añadida por otra del complejo
+        s_aux = []
+        # Recorremos los símplices ordenados por dimensión decreciente
+        for s in sorted(simplices, key=lambda x: len(x.vertices), reverse=True):
+            # Una cara ya está añadida si sus vértices son un subconjunto de los vértices de algún símplice ya añadido
+            if any(set(s.vertices).issubset(set(existing.vertices)) for existing in s_aux):
+                continue
+            # Si no está añadida, la añadimos
+            s_aux.append(s)
+        complejo = Complejo_simplicial_filtrado([])
+        complejo.insert_filtrado(s_aux, r)
+        return complejo
 
-    def get_distancias(self):
-        for s in self.simplices:
-            dist = [round(float(d), 3) for d in s.distancias]
-            print(f"Símplice {s.vertices}: distancias = {dist}")
+    def show_voronoi_delaunay(self):
+        vor = Voronoi(self.coords_puntos)
+        Del = Delaunay(self.coords_puntos)
+        fig = voronoi_plot_2d(vor, show_vertices=False, line_width=2, line_colors='blue')
+        c = np.ones(len(self.coords_puntos))
+        cmap = matplotlib.colors.ListedColormap("limegreen")
+        plt.tripcolor(self.coords_puntos[:, 0], self.coords_puntos[:, 1], Del.simplices, c, edgecolor="k", lw=2,
+                      cmap=cmap)
+        plt.plot(self.coords_puntos[:, 0], self.coords_puntos[:, 1], 'ko')
+        plt.show()
 
+    # Hay que revisarla
+    def show_voronoi_alfa(self):
+        vor = Voronoi(self.coords_puntos)
+        fig = voronoi_plot_2d(vor, show_vertices=False, line_width=2, line_colors='blue')
+        # Ya dibujado el diagrama de Voronoi, dibujamos el alfa-complejo
+        p = self.coords_puntos
+        aristas = set()
+        triangulos = set()
+        for s in self.complex.simplices_ordenados:
+            # Intentamos extraer las aristas y triángulos
+            try:
+                for e in s.n_caras(1):
+                    aristas.add(tuple(int(v) for v in e))
+                for t in s.n_caras(2):
+                    triangulos.add(tuple(int(v) for v in t))
+            except Exception:
+                pass
+        # Dibujamos los triángulos si existen
+        if triangulos:
+            for tri in triangulos:
+                coords = p[list(tri)]
+                plt.fill(coords[:, 0], coords[:, 1], facecolor='limegreen', edgecolor='k', alpha=0.3)
+        # Dibujamos las aristas, incluidas las que ya dibujo el triangulo para que todas tengan la misma forma
+        if aristas:
+            for edge in aristas:
+                xs = p[list(edge), 0]
+                ys = p[list(edge), 1]
+                plt.plot(xs, ys, color='k', linewidth=2)
+        # Por ultimo dibujamos los puntos
+        plt.plot(p[:, 0], p[:, 1], 'ko')
+        # Obtenemos el sistema de coordenadas haciendo que una unidad en x valga lo mismo que una en y
+        plt.gca().set_aspect('equal', adjustable='box')
+        plt.show()
 
+    # Imprime el complejo alfa
+    def print_complex(self):
+        print(
+            f"Alfa-complejo con radio {self.radius}: {[(s.vertices, s.index) for s in self.complex.simplices_ordenados]}")
+        return self.complex
 
-
-
-
-
-
-
-
-
-
+    def print_points(self):
+        print("Puntos del alfa-complejo:")
+        for pt in self.puntos:
+            x, y = pt.coords
+            print(f"{pt.vertice}: ({float(x):.4f}, {float(y):.4f})")
+        return self.puntos
 
 
 ###################################### Ejemplo de Uso ######################################
 if __name__ == "__main__":
     # Definimos los símplices maximales del complejo
     # Por manejo más sencillo, los vértices son enteros
-    s1 = Simplice([0,1,2])
-    s2 = Simplice([2,3])
+    s1 = Simplice([0, 1, 2])
+    s2 = Simplice([2, 3])
     s3 = Simplice([4])
     # Creamos el complejo simplicial
     complejo = Complejo_simplicial([s1, s2, s3])
@@ -344,11 +451,20 @@ if __name__ == "__main__":
     csf.simplices_por_filtrado(1)
     print(f"Simplices ordenados: {[(s.vertices, s.index) for s in csf.simplices_ordenados]}")
     print("####################################################")
-    print("#    Ejercicio Complejos Simpliciales Geométricos    #")
+    print("#             Ejercicios Vietoris-Rips             #")
     print("####################################################")
-    csg = Complejo_simplicial_geometrico([Simplice_geometrico([Punto(1, (0,0)), Punto(2, (1,0))])])
-    csg.caras()
-    csg.get_distancia_max()
-    csg.get_distancias()
-
-
+    vr = Complejo_Vietoris_Rips([Punto(0, (0, 0)), Punto(1, (1, 0)), Punto(2, (0, 1)), Punto(3, (1, 1))])
+    vr.r_complex(0)
+    vr.r_complex(0.25)
+    vr.r_complex(0.5)
+    vr.r_complex(1)
+    print("####################################################")
+    print("#             Ejercicios Alfa-Complejos            #")
+    print("####################################################")
+    points = np.random.rand(10, 2)
+    p = [Punto(i, points[i]) for i in range(len(points))]
+    ac = AlfaComplejo(p, 0.25)
+    ac.print_complex()
+    ac.print_points()
+    # ac.show_voronoi_delaunay()
+    ac.show_voronoi_alfa()
