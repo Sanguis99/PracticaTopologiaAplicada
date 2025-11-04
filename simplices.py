@@ -1,6 +1,6 @@
 from itertools import combinations # Para crear las caras dados los vertices
 import numpy as np
-#Bibliotecas usadas en los ejemplos de Voronoi y Delaunay
+# Bibliotecas usadas en los ejemplos de Voronoi y Delaunay
 from scipy.spatial import Delaunay,Voronoi, voronoi_plot_2d
 import matplotlib.pyplot as plt
 import matplotlib.colors
@@ -64,7 +64,7 @@ class Complejo_simplicial:
             return caras_n
     
     # Los siguientes métodos son para poder imprimir las caras y la dimensión del complejo
-    def caras(self):
+    def print_caras(self):
         print(f"Caras del complejo: {self.c}")
 
     def dimension(self):
@@ -74,8 +74,10 @@ class Complejo_simplicial:
     def matriz_borde_aux(self, p):
         if p < 0 or p > self.d:
             return None
+        # Nos quedamos con las caras de orden p
         caras_p = self.n_caras(p)
         if p == 0:
+            # La matriz de borde en p = 0 será un array 1xn de ceros
             return np.zeros((1, len(caras_p)), dtype=int)
         caras_p_minus_1 = self.n_caras(p - 1)
         m = np.zeros((len(caras_p_minus_1), len(caras_p)), dtype=int)
@@ -98,8 +100,10 @@ class Complejo_simplicial:
         m = self.matriz_borde_aux(p)
         if m is None or m.size == 0:
             return []
+        # Copiamos la matriz para no alterar la original (Por mera rigurosidad)
         A = m.copy()
         n_rows, n_cols = A.shape
+        # Como maximo el rango va a ser el minimo entre el numaro de filas y columnas
         n = min(n_rows, n_cols)
         for i in range(n):
             if A[i, i] == 0:
@@ -201,6 +205,7 @@ class Complejo_simplicial:
                     estrella_cerrada.add(tuple(sorted(subcara)))
         estrella_cerrada = sorted(estrella_cerrada, key=lambda x: x)
         return estrella_cerrada
+
     # Usamos la función auxiliar para calcular la estrella cerrada
     # y luego la imprimimos
     def estrella_cerrada(self, c):
@@ -215,6 +220,7 @@ class Complejo_simplicial:
         estrella = self.estrella_aux(c)
         link = [cara for cara in estrella_cerrada if cara not in estrella]
         return link
+
     # Usamos la función auxiliar para calcular el link
     # y luego la imprimimos
     def link(self, c):
@@ -231,6 +237,7 @@ class Complejo_simplicial:
             # Añadimos aquellas caras que tengan una longitud menor o igual a j+1
             esqueleto = sorted(set([cara for cara in self.c if len(cara) <= j + 1]), key=lambda x: x)
             return esqueleto
+
     # Usamos la función para calcular el j-esqueleto
     # y luego la imprimimos
     def j_esqueleto(self, j):
@@ -242,7 +249,7 @@ class Complejo_simplicial:
     def componentes_conexas_aux(self):
         visited = set()
         components = []
-
+        # Definimos la funcion bep que solo la vamos a usar aqui
         # bep significa Búsqueda en Profundidad
         def bep(v, component):
             visited.add(v)
@@ -252,7 +259,7 @@ class Complejo_simplicial:
                     for u in cara:
                         if u not in visited:
                             bep(u, component)
-
+        # Vemos que vamos visitando
         for cara in self.c:
             for v in cara:
                 if v not in visited:
@@ -260,6 +267,7 @@ class Complejo_simplicial:
                     bep(v, component)
                     components.append(sorted(component))
         return components
+
     # Usamos la función auxiliar para calcular las componentes conexas
     # y luego las imprimimos
     def componentes_conexas(self):
@@ -279,7 +287,7 @@ class Complejo_simplicial:
         else:
             print("El complejo no es conexo.")
             return False
-        
+
     def insert(self, simplices):
         for s in simplices:
             # Evitamos añadir símplices repetidos
@@ -331,10 +339,11 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
         self.d = max(s.dimension for s in self.simplices) if self.simplices else 0
         self.update_simplices_ordenados()
 
-
+    # Funcion que ordena los simplices por su indice de filtrado
     def simplices_por_filtrado_aux(self, index):
         sf = sorted([s for s in self.simplices if s.index <= index], key=lambda x: (x.index, x.dimension))
         return sf
+
     # Usamos la función auxiliar para calcular los símplices con índice de filtrado menor o igual a index
     # y luego los imprimimos
     def simplices_por_filtrado(self, index):
@@ -343,7 +352,7 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
         return sf
 
 
-    ###################################### Clase 4 ######################################
+###################################### Clase 4 ######################################
 
 # Añadimos la clase Punto, la cual contiene los campos vértice y coordenadas.
 class Punto:
@@ -363,8 +372,7 @@ class Complejo_Vietoris_Rips:
         self.puntos = points  # points es una lista de objetos Punto
         self.space_dimension = len(points[0].coords) if points else 0 # Dimensión del espacio en el que están los puntos
 
-
-
+    # Funcion para calcular el r-complejo de Vietori-Rips
     def r_complex_aux(self, r):
         complex = Complejo_simplicial_filtrado([])
         simplices = []
@@ -374,19 +382,19 @@ class Complejo_Vietoris_Rips:
                     simplices.append(Simplice_filtrado(self.vertices(c), r))
         complex.insert_filtrado(simplices, r) # Los añadimos con tiempo r
         return complex
-    
+
     def r_complex(self, r):
         complex = self.r_complex_aux(r)
         print(f"Complejo de Vietoris-Rips para r = {r}: {[ (s.vertices, s.index) for s in complex.simplices_ordenados ]}")
         return complex
-    
+
     # Comprueba que no haya ninguna distancia entre puntos mayor a 2r
     def verifica_radio(self, puntos, r):
         for p1, p2 in combinations(puntos, 2):
             if p1.distancia(p2) > 2 * r: # dist <= 2r
                 return False
         return True
-    
+
     def vertices(self, puntos):
         return [p.vertice for p in puntos]
 
@@ -399,24 +407,30 @@ class AlfaComplejo:
         self.coords_puntos = np.array([p.coords for p in points])
         self.complex = self.alfa_complejo(radius)
         self.radius = radius
+        self.d = self.complex.d
 
     def r_circuncirculo(self, s, puntos):
         A = puntos[s[0]].coords
         B = puntos[s[1]].coords
         C = puntos[s[2]].coords
         # Calcular el circuncentro y el radio
+        # M1 y M2 son los puntos medios de los segmentos AB y BC respectivamente
+        # m1 y m2 son las pendientes de las mediatrices
         M1 = (A + B) / 2
         m1 = (B[1] - A[1])/(B[0] - A[0]) if (B[0] - A[0]) != 0 else None
         M2 = (B + C) / 2
         m2 = (C[1] - B[1])/(C[0] - B[0]) if (C[0] - B[0]) != 0 else None
         if m1 is not None and m2 is not None:
+            # Coordenadas del centro del circuncirculo
             x_circ = (m1 * M1[0] - m2 * M2[0] + M2[1] - M1[1]) / (m1 - m2)
             y_circ = m1 * (x_circ - M1[0]) + M1[1]
+            # radio del circuncirculo (distancia del centro a uno de los vertices)
             r = np.linalg.norm([x_circ - A[0], y_circ - A[1]])
             return r
         return None
 
     def alfa_complejo(self, r):
+        # Sacamos la triangulacion de Delaunay
         Del = Delaunay(self.coords_puntos)  
         simplices = []
         for s in Del.simplices:  # lista de triángulos de Delaunay
@@ -447,6 +461,7 @@ class AlfaComplejo:
         complejo.insert_filtrado(s_aux, r)
         return complejo
 
+    # Funcion para mostrar voronoi y Delaunay copiada de los ejemplos
     def show_voronoi_delaunay(self):
         vor = Voronoi(self.coords_puntos)
         Del = Delaunay(self.coords_puntos)
@@ -457,7 +472,7 @@ class AlfaComplejo:
         cmap=cmap)
         plt.plot(self.coords_puntos[:,0], self.coords_puntos[:,1], 'ko')
         plt.show()
-    
+
     # Dibuja el diagrama de Voronoi junto con el alfa-complejo
     def show_voronoi_alfa(self):
         vor = Voronoi(self.coords_puntos)
@@ -496,7 +511,7 @@ class AlfaComplejo:
     def print_complex(self):
         print(f"Alfa-complejo con radio {self.radius}: {[ (s.vertices, s.index) for s in self.complex.simplices_ordenados ]}")
         return self.complex
-    
+
     def print_points(self):
         print("Puntos del alfa-complejo:")
         for pt in self.puntos:
@@ -517,7 +532,7 @@ if __name__ == "__main__":
     # print("####################################################")
     # print("#         Ejercicio Complejos Simpliciales         #")
     # print("####################################################")
-    # complejo.caras()
+    # complejo.print_caras()
     # complejo.caras_por_dimension()
     # complejo.dimension()
     # complejo.Euler()
@@ -535,7 +550,7 @@ if __name__ == "__main__":
     # csf.insert_filtrado([s1, s2], 0)
     # csf.insert_filtrado([s3], 1)
     # csf.insert_filtrado([s1], 0.5)
-    # csf.caras()
+    # csf.print_caras()
     # csf.caras_por_dimension()
     # csf.simplices_por_filtrado(0)
     # csf.simplices_por_filtrado(1)
@@ -548,16 +563,16 @@ if __name__ == "__main__":
     # vr.r_complex(0.25)
     # vr.r_complex(0.5)
     # vr.r_complex(1)
-    print("####################################################")
-    print("#             Ejercicios Alfa-Complejos            #")
-    print("####################################################")
-    points = np.random.rand(10,2)
-    p = [Punto(i, points[i]) for i in range(len(points))]
-    ac = AlfaComplejo(p, 0.25)
-    ac.print_complex()
-    ac.print_points()
-    # ac.show_voronoi_delaunay()
-    ac.show_voronoi_alfa()
+    # print("####################################################")
+    # print("#             Ejercicios Alfa-Complejos            #")
+    # print("####################################################")
+    # points = np.random.rand(10,2)
+    # p = [Punto(i, points[i]) for i in range(len(points))]
+    # ac = AlfaComplejo(p, 0.25)
+    # ac.print_complex()
+    # ac.print_points()
+    # # ac.show_voronoi_delaunay()
+    # ac.show_voronoi_alfa()
     print("####################################################")
     print("#              Ejercicios Matriz Borde             #")
     print("####################################################")
@@ -579,13 +594,44 @@ if __name__ == "__main__":
     print("####################################################")
     print("#                Ejercicios Betti                  #")
     print("####################################################")
-    print("----------------------------------------------------")
-    print("Numeros de Betti del tetraedro")
-    print("----------------------------------------------------")
+    print("+--------------------------------------------------+")
+    print("+          Numeros de Betti del tetraedro          +")
+    print("+--------------------------------------------------+")
     for i in range(tetraedro.d + 1):
         tetraedro.betti(i)
-    print("----------------------------------------------------")
-    print("Numeros de Betti del ejemplo de la diapositiva 4")
-    print("----------------------------------------------------")
+    print("+--------------------------------------------------+")
+    print("+     Numeros de Betti del borde del tetraedro     +")
+    print("+--------------------------------------------------+")
+    bt = Complejo_simplicial([Simplice(s) for s in tetraedro.n_caras(tetraedro.d - 1)])
+    for i in range(bt.d + 1):
+        bt.betti(i)
+    print("+--------------------------------------------------+")
+    print("+ Numeros de Betti del ejemplo de la diapositiva 4 +")
+    print("+--------------------------------------------------+")
     for i in range(diapositiva_4.d + 1):
         diapositiva_4.betti(i)
+    print("+--------------------------------------------------+")
+    print("+    Numeros de Betti de algunos alfa complejos    +")
+    print("+--------------------------------------------------+")
+    # Definimos varios alfa-complejos distintos
+    points1 = np.random.rand(10,2)
+    points2 = np.random.rand(10,2)
+    points3 = np.random.rand(10,2)
+    points4 = np.random.rand(10,2)
+    p = [[Punto(i, points1[i]) for i in range(len(points1))], 
+        [Punto(i, points2[i]) for i in range(len(points2))], 
+        [Punto(i, points3[i]) for i in range(len(points3))], 
+        [Punto(i, points4[i]) for i in range(len(points4))]]
+    acom = [AlfaComplejo(p[0], 0.25),
+            AlfaComplejo(p[1], 0.25),
+            AlfaComplejo(p[2], 0.25),
+            AlfaComplejo(p[3], 0.25)]
+    for i in range(len(acom)):
+        # Por si se quiere visualizar los alfa-complejos antes de ver sus numeros de Betti
+        # print("Imprimimos el complejo, sus puntos y hacemos un plot del alfa complejo.")
+        # acom[i].print_complex()
+        # acom[i].print_points()
+        # acom[i].show_voronoi_alfa()
+        print(f"Numeros de Betti del alfa-complejo {i + 1}:")
+        for j in range(acom[i].d + 1):
+            acom[i].complex.betti(j)
