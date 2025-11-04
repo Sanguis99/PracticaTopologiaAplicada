@@ -400,7 +400,7 @@ class AlfaComplejo:
         self.complex = self.alfa_complejo(radius)
         self.radius = radius
 
-    def r_circuncirculo(s, puntos):
+    def r_circuncirculo(self, s, puntos):
         A = puntos[s[0]].coords
         B = puntos[s[1]].coords
         C = puntos[s[2]].coords
@@ -548,16 +548,16 @@ if __name__ == "__main__":
     # vr.r_complex(0.25)
     # vr.r_complex(0.5)
     # vr.r_complex(1)
-    # print("####################################################")
-    # print("#             Ejercicios Alfa-Complejos            #")
-    # print("####################################################")
-    # points = np.random.rand(10,2)
-    # p = [Punto(i, points[i]) for i in range(len(points))]
-    # ac = AlfaComplejo(p, 0.25)
-    # ac.print_complex()
-    # ac.print_points()
-    # # ac.show_voronoi_delaunay()
-    # ac.show_voronoi_alfa()
+    print("####################################################")
+    print("#             Ejercicios Alfa-Complejos            #")
+    print("####################################################")
+    points = np.random.rand(10,2)
+    p = [Punto(i, points[i]) for i in range(len(points))]
+    ac = AlfaComplejo(p, 0.25)
+    ac.print_complex()
+    ac.print_points()
+    # ac.show_voronoi_delaunay()
+    ac.show_voronoi_alfa()
     print("####################################################")
     print("#              Ejercicios Matriz Borde             #")
     print("####################################################")
