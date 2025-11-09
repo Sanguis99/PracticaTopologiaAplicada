@@ -606,6 +606,28 @@ if __name__ == "__main__":
     for i in range(bt.d + 1):
         bt.betti(i)
     print("+--------------------------------------------------+")
+    print("+           Numeros de Betti del anillo            +")
+    print("+--------------------------------------------------+")
+    t1 = Simplice([0,1,3])
+    t2 = Simplice([0,3,5])
+    t3 = Simplice([0,2,5])
+    t4 = Simplice([2,4,5])
+    t5 = Simplice([1,2,4])
+    t6 = Simplice([1,3,4])
+    anillo = Complejo_simplicial([t1,t2,t3,t4,t5,t6])
+    for i in range(anillo.d + 1):
+        anillo.betti(i)
+    print("+--------------------------------------------------+")
+    print("+      Numeros de Betti del Sombrero de Asno       +")
+    print("+--------------------------------------------------+")
+    sombrero_asno = Complejo_simplicial([Simplice([1,3,5]),Simplice([1,5,6]),Simplice([1,3,6]),Simplice([2,3,5]),
+                                        Simplice([2,4,5]),Simplice([4,5,6]),Simplice([4,6,8]),Simplice([6,7,8]),
+                                        Simplice([3,6,7]),Simplice([2,3,7]),Simplice([1,2,7]),Simplice([1,7,8]),
+                                        Simplice([1,2,8]),Simplice([2,3,8]),Simplice([3,4,8]),Simplice([1,3,4]),
+                                        Simplice([1,2,4])])
+    for i in range(sombrero_asno.d + 1):
+        sombrero_asno.betti(i)
+    print("+--------------------------------------------------+")
     print("+ Numeros de Betti del ejemplo de la diapositiva 4 +")
     print("+--------------------------------------------------+")
     for i in range(diapositiva_4.d + 1):
