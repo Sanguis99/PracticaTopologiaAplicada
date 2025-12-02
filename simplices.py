@@ -2,7 +2,7 @@ from itertools import combinations # Para crear las caras dados los vertices
 import numpy as np
 # Bibliotecas usadas en los ejemplos de Voronoi y Delaunay
 from scipy.spatial import Delaunay,Voronoi, voronoi_plot_2d
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt #bibliotecas para las gráficas de los alfa complejos
 import matplotlib.colors
 
 # Información sobre los headers de las funciones:
@@ -69,6 +69,8 @@ class Complejo_simplicial:
 
     def dimension(self):
         print(f"Dimensión del complejo: {self.d}")
+
+###################################### Fin Clase 1 ######################################
 
 ###################################### Clase 6 ######################################
     def matriz_borde_aux(self, p):
@@ -164,6 +166,7 @@ class Complejo_simplicial:
 ###################################### CLASE 2 ######################################
     # Calculamos el número de caras por dimensión
     def caras_por_dimension(self):
+        # Nos vamos cogiendo todas las caras de dimensión i con el metodo ya creado de n_caras
         caras_dim = [self.n_caras(i) for i in range(self.d + 1)]
         for i in range(self.d + 1):
             print(f"Caras de dimensión {i}: {caras_dim[i]}")
@@ -185,8 +188,7 @@ class Complejo_simplicial:
         estrella = set([cara for cara in self.c if set(c).issubset(set(cara))])
         estrella = sorted(estrella, key=lambda x: x)
         return estrella
-    # Usamos la función auxiliar para calcular la estrella
-    # y luego la imprimimos
+    # Usamos la función auxiliar para calcular la estrella y luego la imprimimos
     def estrella(self, c):
         # Todas las caras que contienen a c
         estrella = self.estrella_aux(c)
