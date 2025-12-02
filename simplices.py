@@ -161,7 +161,7 @@ class Complejo_simplicial:
         beta_p = self.betti_numbers_aux(p)
         print(f"Número de Betti β_{p}: {beta_p}")
         return beta_p
-###################################### Fin Clase 6 ######################################
+###################################### FIN CLASE 6 ######################################
 
 ###################################### CLASE 2 ######################################
     # Calculamos el número de caras por dimensión
@@ -199,6 +199,8 @@ class Complejo_simplicial:
     def estrella_cerrada_aux(self, c):
         # Encuentra todas las caras que contienen al menos un vértice de c
         caras_con_v = [cara for cara in self.c if any(v in cara for v in c)]
+        # Se podria hacer utilizando las caras que devuelve la funcion estrella,
+        # pero nos es mas intuitivo partir desde cero
         # Añade todas las subcaras de esas caras
         estrella_cerrada = set()
         for cara in caras_con_v:
@@ -230,18 +232,19 @@ class Complejo_simplicial:
         print(f"Link de {c}: {link}")
         return link
 
+    # No nos han pedido implementar la funcion j_esquelto, pero la hemos hecho igualmente ya que se trata de
+    # una función sencilla
     def j_esqueleto_aux(self, j):
         # Comprobamos que j es válido
         if j < 0 or j > self.d:
             print(f"No hay esqueleto de dimensión {j} en el complejo.")
             return []
         else:
-            # Añadimos aquellas caras que tengan una longitud menor o igual a j+1
+            # Añadimos aquellas caras que tengan una dimensión menor o igual a j+1
             esqueleto = sorted(set([cara for cara in self.c if len(cara) <= j + 1]), key=lambda x: x)
             return esqueleto
 
-    # Usamos la función para calcular el j-esqueleto
-    # y luego la imprimimos
+    # Usamos la función para calcular el j-esqueleto y luego la imprimimos
     def j_esqueleto(self, j):
         esqueleto = self.j_esqueleto_aux(j)
         print(f"{j}-esqueleto del complejo: {esqueleto}")
@@ -251,13 +254,13 @@ class Complejo_simplicial:
     def componentes_conexas_aux(self):
         visited = set()
         components = []
-        # Definimos la funcion bep que solo la vamos a usar aqui
-        # bep significa Búsqueda en Profundidad
+        # Definimos la funcion bep que solo la vamos a usar aqui, de esta manera conseguimos todos
+        # los vertices accesibles por componente
         def bep(v, component):
             visited.add(v)
             component.append(v)
             for cara in self.c:
-                if v in cara:
+                if v in cara: # miramos el resto de vértices que estén en la misma cara que v
                     for u in cara:
                         if u not in visited:
                             bep(u, component)
@@ -267,11 +270,10 @@ class Complejo_simplicial:
                 if v not in visited:
                     component = []
                     bep(v, component)
-                    components.append(sorted(component))
+                    components.append(sorted(component))  # ordenamos el resultado
         return components
 
-    # Usamos la función auxiliar para calcular las componentes conexas
-    # y luego las imprimimos
+    # Usamos la función auxiliar para calcular las componentes conexas y luego las imprimimos
     def componentes_conexas(self):
         components = self.componentes_conexas_aux()
         print(f"Componentes conexas del complejo: {components}")
@@ -290,16 +292,21 @@ class Complejo_simplicial:
             print("El complejo no es conexo.")
             return False
 
+    ###################################### FIN CLASE 2 ######################################
+
+    ###################################### CLASE 3 ######################################
+
+    # Función para añadir un símplice a nuestro complejo
     def insert(self, simplices):
         for s in simplices:
-            # Evitamos añadir símplices repetidos
+            # Evitamos añadir símplices repetidos, comprobando si tiene los mismos vértices
             if any(set(s.vertices) == set(existing.vertices) for existing in self.simplices):
                 continue
             self.simplices.add(s)
-        self.c = self.calcular_caras()
-        self.d = max(s.dimension for s in self.simplices) if self.simplices else 0
+        self.c = self.calcular_caras()  # volvemos a calcular las caras
+        self.d = max(s.dimension for s in self.simplices) if self.simplices else 0  # volvemos a calcular la dimensión
 
-###################################### CLASE 3 ######################################
+
 class Simplice_filtrado(Simplice):
     def __init__(self, vertices, index):
         super().__init__(vertices)
