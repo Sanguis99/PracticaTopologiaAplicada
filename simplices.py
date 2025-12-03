@@ -302,6 +302,10 @@ class Complejo_simplicial:
             # Evitamos añadir símplices repetidos, comprobando si tiene los mismos vértices
             if any(set(s.vertices) == set(existing.vertices) for existing in self.simplices):
                 continue
+            # Eliminamos las caras que ya estén contenidas en el simplice que queremos añadir
+            to_remove = [existing for existing in self.simplices if set(existing.vertices).issubset(set(s.vertices))]
+            for r in to_remove:
+                self.simplices.remove(r)
             self.simplices.add(s)
         self.c = self.calcular_caras()  # volvemos a calcular las caras
         self.d = max(s.dimension for s in self.simplices) if self.simplices else 0  # volvemos a calcular la dimensión
