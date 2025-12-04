@@ -39,10 +39,24 @@ class Simplice:
 # Clase de los complejos simpliciales
 class Complejo_simplicial:
     def __init__(self, simplices):
-        self.simplices = set(simplices)
+        self.simplices = self.calcular_simplices(simplices)
         self.c = self.calcular_caras()
         # La dimensión del complejo simplicial es la dimensión máxima de los símplices
         self.d = max(s.dimension for s in simplices) if simplices else 0
+
+    # Método para calcular los símplices maximales del complejo simplicial
+    def calcular_simplices(self, simplices):
+        maximal_simplices = set()
+        for s in simplices:
+            # Evitamos añadir símplices repetidos, comprobando si tiene los mismos vértices
+            if any(set(s.vertices) == set(existing.vertices) for existing in maximal_simplices):
+                continue
+            # Eliminamos las caras que ya estén contenidas en el simplice que queremos añadir
+            to_remove = [existing for existing in maximal_simplices if set(existing.vertices).issubset(set(s.vertices))]
+            for r in to_remove:
+                maximal_simplices.remove(r)
+            maximal_simplices.add(s)
+        return maximal_simplices
 
     # Definimos las caras del complejo simplicial usando las caras de los símplices maximales
     def calcular_caras(self):
@@ -162,6 +176,45 @@ class Complejo_simplicial:
         print(f"Número de Betti β_{p}: {beta_p}")
         return beta_p
 ###################################### FIN CLASE 6 ######################################
+
+###################################### Clase 9 ######################################
+
+# Implementamos el algoritmo incremental solo para complejos que esten en R2
+    def algoritmo_incremental_aux(self):
+        betta = [0] * (self.d)
+        for p in range(self.d+1):
+            # Caras de dimension p
+            s_dim_p = [Simplice([s[i] for i in range(len(s))]) for s in self.n_caras(p)]
+            for i in range(len(s_dim_p)):
+                if p == 0:
+                    betta[p] += 1
+                elif p == 2:
+                    betta[p - 1] -= 1
+                elif p == 1:
+                    s_dim_p = [Simplice([s[i] for i in range(len(s))]) for s in self.n_caras(p)]
+                    # Cogemos N_i y N_i-1
+                    s_dim_p_minus_1 = [Simplice([s[i] for i in range(len(s))]) for s in self.n_caras(p - 1)]
+                    # Ordenamos las listas para que se ordenen por sus indices de vertices
+                    s_dim_p_minus_1 = sorted(s_dim_p_minus_1, key=lambda x: x.vertices)
+                    s_dim_p = sorted(s_dim_p, key=lambda x: x.vertices)
+                    # Juntamos las dos listas de simplices para que los de dimension p-1 queden primeros
+                    s_dim_p = s_dim_p_minus_1 + s_dim_p
+                    s_dim_p = sorted(s_dim_p, key=lambda x: (len(x.vertices), x.vertices))
+                    complejo_n_i = Complejo_simplicial(s_dim_p[:len(s_dim_p_minus_1)+i+1])
+                    complejo_n_i_minus_1 = Complejo_simplicial(s_dim_p[:len(s_dim_p_minus_1)+i])
+                    if complejo_n_i.connected_components() == complejo_n_i_minus_1.connected_components():
+                        betta[p] += 1
+                    else:
+                        betta[p - 1] -= 1
+        return betta
+    
+    def algoritmo_incremental(self):
+        betta = self.algoritmo_incremental_aux()
+        for p in range(self.d):
+            print(f"Número de Betti β_{p} (Algoritmo Incremental): {betta[p]}")
+        return betta
+
+###################################### FIN CLASE 9 ######################################
 
 ###################################### CLASE 2 ######################################
     # Calculamos el número de caras por dimensión
@@ -756,7 +809,7 @@ if __name__ == "__main__":
     e17 = Simplice([13,15,18])
     e18 = Simplice([7,13,18])
     doble_toro = Complejo_simplicial([d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,
-                                     e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18])
+                                      e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18])
     for i in range(doble_toro.d + 1):
         doble_toro.betti(i)
     print("+--------------------------------------------------+")
@@ -789,3 +842,17 @@ if __name__ == "__main__":
         print(f"Numeros de Betti del alfa-complejo {i + 1}:")
         for j in range(acom[i].d + 1):
             acom[i].complex.betti(j)
+    print("+--------------------------------------------------+")
+    print("+                Algoritmo incremental             +")
+    print("+--------------------------------------------------+")
+    s1 = Simplice([0,1,2])
+    s2 = Simplice([1,2,3])
+    s3 = Simplice([1,4,5])
+    s4 = Simplice([4,5,6])
+    s5 = Simplice([5,6,7])
+    s6 = Simplice([5,7,8])
+    s7 = Simplice([3,8])
+    s8 = Simplice([3,9])
+    s9 = Simplice([8,9])
+    complejo_incremental = Complejo_simplicial([s1,s2,s3,s4,s5,s6,s7,s8,s9])
+    complejo_incremental.algoritmo_incremental()
