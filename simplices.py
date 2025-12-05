@@ -355,7 +355,7 @@ class Complejo_simplicial:
             # Evitamos añadir símplices repetidos, comprobando si tiene los mismos vértices
             if any(set(s.vertices) == set(existing.vertices) for existing in self.simplices):
                 continue
-            # Eliminamos las caras que ya estén contenidas en el simplice que queremos añadir
+            # Eliminamos las caras que ya estén contenidas en el simplice que queremos añadir para evitar duplicados
             to_remove = [existing for existing in self.simplices if set(existing.vertices).issubset(set(s.vertices))]
             for r in to_remove:
                 self.simplices.remove(r)
@@ -364,7 +364,9 @@ class Complejo_simplicial:
         self.d = max(s.dimension for s in self.simplices) if self.simplices else 0  # volvemos a calcular la dimensión
 
 
+# Clase heredada de la clase Símplce
 class Simplice_filtrado(Simplice):
+    # Recibe los vértices y un float que será el índice de ese símplice (el momento en el que nace)
     def __init__(self, vertices, index):
         super().__init__(vertices)
         self.index = float(index)
@@ -387,6 +389,8 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
         self.update_simplices_ordenados()
 
     def update_simplices_ordenados(self):
+        # Ordenamos los simplices por índice, en caso de coincidir por dimension, y en caso de volver a coincidir por
+        # el número del vértice
         self.simplices_ordenados = sorted(self.simplices, key=lambda x: (x.index, x.dimension, x.vertices))
 
     # Insertar un conjunto de símplices con el mismo índice de filtrado
