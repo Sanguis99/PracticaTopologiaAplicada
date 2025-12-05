@@ -1,8 +1,10 @@
-from itertools import combinations # Para crear las caras dados los vertices
+# Para crear las caras dados los vertices de un simplice
+from itertools import combinations
 import numpy as np
 # Bibliotecas usadas en los ejemplos de Voronoi y Delaunay
 from scipy.spatial import Delaunay,Voronoi, voronoi_plot_2d
-import matplotlib.pyplot as plt #bibliotecas para las gráficas de los alfa complejos
+# Bibliotecas para las gráficas de los alfa complejos
+import matplotlib.pyplot as plt
 import matplotlib.colors
 
 # Información sobre los headers de las funciones:
