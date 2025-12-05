@@ -402,16 +402,17 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
             # Si ya existe un símplice con los mismos vértices, mantenemos el de menor índice
             if any(set(s1.vertices) == set(existing.vertices) for existing in self.simplices):
                 e = [existing for existing in self.simplices if set(s1.vertices) == set(existing.vertices)][0]
-                if s1.index < e.index:
+                if s1.index < e.index:  # En principio esto no sería necesario porque los simplices se añaden de manera incremental
                     self.simplices.remove(e)
                 else:
                     continue
             self.simplices.add(s1)
+        # Volvemos a calcular las caras y la dimensión del complejo al añadir nuevos símplices
         self.c = self.calcular_caras()
         self.d = max(s.dimension for s in self.simplices) if self.simplices else 0
-        self.update_simplices_ordenados()
+        self.update_simplices_ordenados() # volvemos a ordenar los símplices
 
-    # Funcion que ordena los simplices por su indice de filtrado
+    # Función que devuelve ordenadamente aquellos símplices cuyo indice es menor o igual al parámetro de la función
     def simplices_por_filtrado_aux(self, index):
         sf = sorted([s for s in self.simplices if s.index <= index], key=lambda x: (x.index, x.dimension))
         return sf
