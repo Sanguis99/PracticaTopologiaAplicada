@@ -347,9 +347,9 @@ class Complejo_simplicial:
             print("El complejo no es conexo.")
             return False
 
-    ###################################### FIN CLASE 2 ######################################
+###################################### FIN CLASE 2 ##################################
 
-    ###################################### CLASE 3 ######################################
+###################################### CLASE 3 ######################################
 
     # Función para añadir un símplice a nuestro complejo
     def insert(self, simplices):
@@ -424,6 +424,7 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
         print(f"Símplices con índice de filtrado menor o igual a {index}: {[ (s.vertices, s.index) for s in sf ]}")
         return sf
 
+#################################### FIN CLASE 3 ##################################
 
 ###################################### Clase 4 ######################################
 
