@@ -89,20 +89,22 @@ class Complejo_simplicial:
 
 ###################################### Fin Clase 1 ######################################
 
-###################################### Clase 6 ######################################
+###################################### Clase 7 ######################################
+    # Funcion para calcular la matriz borde para la dim p
     def matriz_borde_aux(self, p):
         if p < 0 or p > self.d:
             return None
         # Nos quedamos con las caras de orden p
         caras_p = self.n_caras(p)
         if p == 0:
-            # La matriz de borde en p = 0 será un array 1xn de ceros
+            # La matriz de borde en p = 0 será un array 1xn de ceros, donde n es el número de vértices del complejo
             return np.zeros((1, len(caras_p)), dtype=int)
         caras_p_minus_1 = self.n_caras(p - 1)
+        # Nos creamos la matriz llena de ceros
         m = np.zeros((len(caras_p_minus_1), len(caras_p)), dtype=int)
         for d in caras_p:
             for c in caras_p_minus_1:
-                if set(c).issubset(set(d)):
+                if set(c).issubset(set(d)):  # Si c es subcara de d entonces marcamos 1 en la matriz
                     m[caras_p_minus_1.index(c)][caras_p.index(d)] = 1
         return m
 
@@ -178,7 +180,7 @@ class Complejo_simplicial:
         beta_p = self.betti_numbers_aux(p)
         print(f"Número de Betti β_{p}: {beta_p}")
         return beta_p
-###################################### FIN CLASE 6 ######################################
+###################################### FIN CLASE 7 ######################################
 
 ###################################### Clase 9 ######################################
 
