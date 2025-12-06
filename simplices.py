@@ -118,13 +118,14 @@ class Complejo_simplicial:
     
     # Devuelve directamente la matriz borde p en forma normal de Smith
     def normal_Smith_aux(self, p):
+        # Primero obtenemos la matriz borde de dimensión p
         m = self.matriz_borde_aux(p)
         if m is None or m.size == 0:
             return []
         # Copiamos la matriz para no alterar la original (Por mera rigurosidad)
         A = m.copy()
         n_rows, n_cols = A.shape
-        # Como maximo el rango va a ser el minimo entre el numaro de filas y columnas
+        # Como maximo el rango va a ser el minimo entre el numero de filas y columnas
         n = min(n_rows, n_cols)
         for i in range(n):
             if A[i, i] == 0:
@@ -142,10 +143,13 @@ class Complejo_simplicial:
             # Si no se ha encontrado ningún 1, salimos del bucle
             if A[i, i] != 1:
                 break
-            # Eliminar los 1s en la fila y columna i
+            # Eliminar los 1s en la fila y columna i, para ello, como estamos en Z2 y sabemos que A[i,i] = 1 lo que
+            # hacemos es sumar por filas y por columnas respectivamente para que aquellos 1s se conviertan en 0s.
+            # Columnas:
             for j in range(i + 1, n_cols):
                 if A[i, j] == 1:
                     A[:, j] = (A[:, i] + A[:, j]) % 2
+            # Filas:
             for k in range(i + 1, n_rows):
                 if A[k, i] == 1:
                     A[k, :] = (A[i, :] + A[k, :]) % 2
