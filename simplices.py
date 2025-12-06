@@ -545,6 +545,7 @@ class AlfaComplejo:
 
     # Funcion para mostrar voronoi y Delaunay copiada de los ejemplos
     def show_voronoi_delaunay(self):
+        # Usamos la librería scipy.spatial para Voronoi, Delaunay y voronoi_plot_2d
         vor = Voronoi(self.coords_puntos)
         Del = Delaunay(self.coords_puntos)
         fig = voronoi_plot_2d(vor,show_vertices=False,line_width=2, line_colors='blue' )
@@ -557,6 +558,7 @@ class AlfaComplejo:
 
     # Dibuja el diagrama de Voronoi junto con el alfa-complejo
     def show_voronoi_alfa(self):
+        # Usamos la librería scipy.spatial para Voronoi y voronoi_plot_2d
         vor = Voronoi(self.coords_puntos)
         fig = voronoi_plot_2d(vor, show_vertices=False, line_width=2, line_colors='blue')
         # Ya dibujado el diagrama de Voronoi, dibujamos el alfa-complejo
