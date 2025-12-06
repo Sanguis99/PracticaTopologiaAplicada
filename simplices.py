@@ -480,7 +480,7 @@ class Complejo_Vietoris_Rips:
 class AlfaComplejo:
     def __init__(self, points, radius):
         self.puntos = points  # points es una lista de objetos Punto
-        self.coords_puntos = np.array([p.coords for p in points])
+        self.coords_puntos = np.array([p.coords for p in points])  # recogemos las coordenadas de los puntos
         self.complex = self.alfa_complejo(radius)
         self.radius = radius
         self.d = self.complex.d
