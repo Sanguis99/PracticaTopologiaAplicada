@@ -188,16 +188,17 @@ class Complejo_simplicial:
 
 ###################################### Clase 9 ######################################
 
-# Implementamos el algoritmo incremental solo para complejos que esten en R2
+# Implementamos el algoritmo incremental solo para complejos que estén en R^2
     def algoritmo_incremental_aux(self):
         betta = [0] * (self.d)
         for p in range(self.d+1):
             # Caras de dimension p
+            # Para cada cara de dimension p creamos un objeto Simplice, para así obtener los simplices de dimension p
             s_dim_p = [Simplice([s[i] for i in range(len(s))]) for s in self.n_caras(p)]
             for i in range(len(s_dim_p)):
-                if p == 0:
+                if p == 0:  # Todo 0-simplice es positivo, se añade una componente conexa (H0)
                     betta[p] += 1
-                elif p == 2:
+                elif p == 2: # Todo 2-simplice es negativo, eliminamos un agujero de dim p-1 (H1)
                     betta[p - 1] -= 1
                 elif p == 1:
                     s_dim_p = [Simplice([s[i] for i in range(len(s))]) for s in self.n_caras(p)]
