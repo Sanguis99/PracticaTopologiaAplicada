@@ -66,7 +66,8 @@ class Complejo_simplicial:
         # Añadimos las caras de cada símplice. Las caras de cada símplice ya las calculamos en la clase Simplice
         for s in self.simplices:
             for cara in s.caras:
-                caras.add(cara)
+                if cara not in caras:
+                    caras.add(cara)
         return sorted(caras, key=lambda x: x) # lambda expression que ordena las caras por su valor inicial
 
     # Este metodo permite extraer las caras de dimensión n
@@ -480,11 +481,12 @@ class Complejo_Vietoris_Rips:
 class AlfaComplejo:
     def __init__(self, points, radius):
         self.puntos = points  # points es una lista de objetos Punto
-        self.coords_puntos = np.array([p.coords for p in points])  # recogemos las coordenadas de los puntos
+        self.coords_puntos = np.array([p.coords for p in points])  # matriz de coordenadas
         self.complex = self.alfa_complejo(radius)
         self.radius = radius  # radio actual del alpha complejo
-        self.d = self.complex.d
+        self.d = self.complex.d  # dimensión del complejo
 
+    # Funcion para calcular el radio del circuncirculo del triángulo de vértices A,B y C
     def r_circuncirculo(self, s, puntos):
         A = puntos[s[0]].coords
         B = puntos[s[1]].coords
@@ -493,8 +495,10 @@ class AlfaComplejo:
         # M1 y M2 son los puntos medios de los segmentos AB y BC respectivamente
         # m1 y m2 son las pendientes de las mediatrices
         M1 = (A + B) / 2
+        # si un segmento es vertical asignamos None para evitar divisiones por 0
         m1 = (B[1] - A[1])/(B[0] - A[0]) if (B[0] - A[0]) != 0 else None
         M2 = (B + C) / 2
+        # si un segmento es vertical asignamos None para evitar divisiones por 0
         m2 = (C[1] - B[1])/(C[0] - B[0]) if (C[0] - B[0]) != 0 else None
         if m1 is not None and m2 is not None:
             # Coordenadas del centro del circuncirculo
@@ -524,7 +528,7 @@ class AlfaComplejo:
                         simplices.append(Simplice_filtrado(sorted([s[i], s[(i+1)%3]]), r))
                         # No hay segundo caso ya que la arista se añadira con el triangulo, y puesto que hemos comprobado antes si se añade el triángulo o no
                         # no hace falta volver a comprobarlo.
-                    else: # Si no están ni la arista ni el triángulo, añadimos los vértices
+                    else: # Si no están ni la arista ni el triángulo, añadimos solo los vértices
                         simplices.append(Simplice_filtrado([s[i]], r))
         # Comprobamos que no haya ninguna cara que ya sea añadida por otra del complejo
         s_aux = []
