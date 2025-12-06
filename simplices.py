@@ -66,7 +66,7 @@ class Complejo_simplicial:
         # Añadimos las caras de cada símplice. Las caras de cada símplice ya las calculamos en la clase Simplice
         for s in self.simplices:
             for cara in s.caras:
-                if cara not in caras:
+                if cara not in caras:  # Evitamos tener caras duplicadas, importante para los complejos simpliciales filtrados
                     caras.add(cara)
         return sorted(caras, key=lambda x: x) # lambda expression que ordena las caras por su valor inicial
 
