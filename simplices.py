@@ -428,7 +428,8 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
 
 ###################################### Clase 4 ######################################
 
-# Añadimos la clase Punto, la cual contiene los campos vértice y coordenadas.
+# Añadimos la clase Punto, la cual contiene los campos vértice y coordenadas, ya que es necesario a partir de aquí
+# tener las coordenadas de cada vértice.
 class Punto:
     def __init__(self, nombre, coords):
         self.vertice = nombre
@@ -463,6 +464,8 @@ class Complejo_Vietoris_Rips:
         return complex
 
     # Comprueba que no haya ninguna distancia entre puntos mayor a 2r
+    # Ya que el diametro del simplice que se está comprobando debe ser su diametro (el supremo de las distancias de los vértices)
+    # menor o igual a 2r para añadirse al complejo de Vietori-Rips de valor r.
     def verifica_radio(self, puntos, r):
         for p1, p2 in combinations(puntos, 2):
             if p1.distancia(p2) > 2 * r: # dist <= 2r
@@ -472,7 +475,6 @@ class Complejo_Vietoris_Rips:
     def vertices(self, puntos):
         return [p.vertice for p in puntos]
 
-###################################### Clase 5 ######################################
 
 # Debemos crearnos una función que calcule la filtración de alfa-complejos asociada a un conjunto de puntos en el plano
 class AlfaComplejo:
