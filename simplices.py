@@ -482,7 +482,7 @@ class AlfaComplejo:
         self.puntos = points  # points es una lista de objetos Punto
         self.coords_puntos = np.array([p.coords for p in points])  # recogemos las coordenadas de los puntos
         self.complex = self.alfa_complejo(radius)
-        self.radius = radius
+        self.radius = radius  # radio actual del alpha complejo
         self.d = self.complex.d
 
     def r_circuncirculo(self, s, puntos):
@@ -506,11 +506,13 @@ class AlfaComplejo:
         return None
 
     def alfa_complejo(self, r):
-        # Sacamos la triangulacion de Delaunay
+        # Sacamos la triangulacion de Delaunay, que viene importada de la biblioteca scipy.spatial
         Del = Delaunay(self.coords_puntos)  
         simplices = []
         for s in Del.simplices:  # lista de triángulos de Delaunay
             radio_circuncirculo = self.r_circuncirculo(s, self.puntos)
+            # Un triángulo de Delaunay pertenece a Aplpha(r) si y solo si r es mayor o igual que el radio de la
+            # circnferencia que pasa por los tres puntos del triángulo de Delaunay
             if radio_circuncirculo is not None and radio_circuncirculo <= r:
                 simplices.append(Simplice_filtrado([s[0], s[1], s[2]], r))
             # Comprobamos las aristas
