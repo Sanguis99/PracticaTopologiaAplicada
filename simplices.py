@@ -492,7 +492,7 @@ class Complejo_Vietoris_Rips:
     def vertices(self, puntos):
         return [p.vertice for p in puntos]
 
-# Debemos crearnos una función que calcule la filtración de alfa-complejos asociada a un conjunto de puntos en el plano
+
 class AlfaComplejo:
     def __init__(self, points, radius):
         self.puntos = points  # points es una lista de objetos Punto
