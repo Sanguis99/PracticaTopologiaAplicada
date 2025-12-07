@@ -96,7 +96,6 @@ class Complejo_simplicial:
         caras_dim = [self.n_caras(i) for i in range(self.d + 1)]
         for i in range(self.d + 1):
             print(f"Caras de dimensión {i}: {caras_dim[i]}")
-        return caras_dim
 
 
 ###################################### Fin Clase 1 ######################################
