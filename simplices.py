@@ -175,7 +175,6 @@ class Complejo_simplicial:
     def j_esqueleto(self, j):
         esqueleto = self.j_esqueleto_aux(j)
         print(f"{j}-esqueleto del complejo: {esqueleto}")
-        return esqueleto
 
     # Se calculan las componentes conexas del complejo usando búsqueda en profundidad (BEP)
     def componentes_conexas_aux(self):
