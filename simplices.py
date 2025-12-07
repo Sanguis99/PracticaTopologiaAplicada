@@ -609,14 +609,12 @@ class AlfaComplejo:
     # Imprime el complejo alfa
     def print_complex(self):
         print(f"Alfa-complejo con radio {self.radius}: {[ (s.vertices, s.index) for s in self.complex.simplices_ordenados ]}")
-        return self.complex
 
     def print_points(self):
         print("Puntos del alfa-complejo:")
         for pt in self.puntos:
             x, y = pt.coords
             print(f"{pt.vertice}: ({float(x):.4f}, {float(y):.4f})")
-        return self.puntos
 
 ###################################### Ejemplo de Uso ######################################
 if __name__ == "__main__":
