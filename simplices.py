@@ -92,6 +92,140 @@ class Complejo_simplicial:
 
 ###################################### Fin Clase 1 ######################################
 
+###################################### CLASE 2 ######################################
+    # Calculamos el número de caras por dimensión
+    def caras_por_dimension(self):
+        # Nos vamos cogiendo todas las caras de dimensión i con el metodo ya creado de n_caras
+        caras_dim = [self.n_caras(i) for i in range(self.d + 1)]
+        for i in range(self.d + 1):
+            print(f"Caras de dimensión {i}: {caras_dim[i]}")
+        return caras_dim
+
+    # Cálculo de la característica de Euler
+    def Euler(self):
+        chi = 0
+        # Definimos el sumatorio para la característica de Euler
+        for i in range(self.d + 1):
+            # Calculamos el número de caras de cada dimensión, las de dimensión para se suman
+            # y las de dimensión impar se restan, obteniendo así la característica de Euler
+            chi += (-1) ** i * len(self.n_caras(i))
+        print(f"Característica de Euler: {chi}")
+        return chi
+
+    # La estrella de un símplice c es el conjunto de todas las cocaras de c
+    def estrella_aux(self, c):
+        estrella = set([cara for cara in self.c if set(c).issubset(set(cara))])
+        estrella = sorted(estrella, key=lambda x: x)
+        return estrella
+
+    # Usamos la función auxiliar para calcular la estrella y luego la imprimimos
+    def estrella(self, c):
+        # Todas las caras que contienen a c
+        estrella = self.estrella_aux(c)
+        print(f"Estrella de {c}: {estrella}")
+        return estrella
+
+    # La estrella cerrada de c es el menor subcomplejo de K que contiene a la estrella de c.
+    def estrella_cerrada_aux(self, c):
+        # Encuentra todas las caras que contienen al menos un vértice de c
+        caras_con_v = [cara for cara in self.c if any(v in cara for v in c)]
+        # Se podria hacer utilizando las caras que devuelve la funcion estrella,
+        # pero nos es mas intuitivo partir desde cero
+        # Añade todas las subcaras de esas caras
+        estrella_cerrada = set()
+        for cara in caras_con_v:
+            for k in range(1, len(cara) + 1):
+                for subcara in combinations(cara, k):
+                    estrella_cerrada.add(tuple(sorted(subcara)))
+        estrella_cerrada = sorted(estrella_cerrada, key=lambda x: x)
+        return estrella_cerrada
+
+    # Usamos la función auxiliar para calcular la estrella cerrada
+    # y luego la imprimimos
+    def estrella_cerrada(self, c):
+        estrella_cerrada = self.estrella_cerrada_aux(c)
+        print(f"Estrella cerrada de {c}: {estrella_cerrada}")
+        return estrella_cerrada
+
+    # El link de un símplice c es el conjunto de todos los símplices de la estrella cerrada de c
+    # cuya intersección con la estrella de c es vacía
+    def link_aux(self, c):
+        estrella_cerrada = self.estrella_cerrada_aux(c)
+        estrella = self.estrella_aux(c)
+        link = [cara for cara in estrella_cerrada if cara not in estrella]
+        return link
+
+    # Usamos la función auxiliar para calcular el link
+    # y luego la imprimimos
+    def link(self, c):
+        link = self.link_aux(c)
+        print(f"Link de {c}: {link}")
+        return link
+
+    # No nos han pedido implementar la funcion j_esquelto, pero la hemos hecho igualmente ya que se trata de
+    # una función sencilla
+    def j_esqueleto_aux(self, j):
+        # Comprobamos que j es válido
+        if j < 0 or j > self.d:
+            print(f"No hay esqueleto de dimensión {j} en el complejo.")
+            return []
+        else:
+            # Añadimos aquellas caras que tengan una dimensión menor o igual a j+1
+            esqueleto = sorted(set([cara for cara in self.c if len(cara) <= j + 1]), key=lambda x: x)
+            return esqueleto
+
+    # Usamos la función para calcular el j-esqueleto y luego la imprimimos
+    def j_esqueleto(self, j):
+        esqueleto = self.j_esqueleto_aux(j)
+        print(f"{j}-esqueleto del complejo: {esqueleto}")
+        return esqueleto
+
+    # Se calculan las componentes conexas del complejo usando búsqueda en profundidad (BEP)
+    def componentes_conexas_aux(self):
+        visited = set()
+        components = []
+
+        # Definimos la funcion bep que solo la vamos a usar aqui, de esta manera conseguimos todos
+        # los vertices accesibles por componente
+        def bep(v, component):
+            visited.add(v)
+            component.append(v)
+            for cara in self.c:
+                if v in cara:  # miramos el resto de vértices que estén en la misma cara que v
+                    for u in cara:
+                        if u not in visited:
+                            bep(u, component)
+
+        # Vemos que vamos visitando
+        for cara in self.c:
+            for v in cara:
+                if v not in visited:
+                    component = []
+                    bep(v, component)
+                    components.append(sorted(component))  # ordenamos el resultado
+        return components
+
+    # Usamos la función auxiliar para calcular las componentes conexas y luego las imprimimos
+    def componentes_conexas(self):
+        components = self.componentes_conexas_aux()
+        print(f"Componentes conexas del complejo: {components}")
+        return components
+
+    # Calculamos el número de componentes conexas
+    def connected_components(self):
+        return len(self.componentes_conexas_aux())
+
+    # El complejo será conexo si tiene una única componente conexa
+    def es_conexo(self):
+        if self.connected_components() == 1:
+            print("El complejo es conexo.")
+            return True
+        else:
+            print("El complejo no es conexo.")
+            return False
+
+    ###################################### FIN CLASE 2 ##################################
+
 ###################################### Clase 7 ######################################
     # Funcion para calcular la matriz borde para la dim p
     def matriz_borde_aux(self, p):
@@ -237,136 +371,6 @@ class Complejo_simplicial:
 
 ###################################### FIN CLASE 9 ######################################
 
-###################################### CLASE 2 ######################################
-    # Calculamos el número de caras por dimensión
-    def caras_por_dimension(self):
-        # Nos vamos cogiendo todas las caras de dimensión i con el metodo ya creado de n_caras
-        caras_dim = [self.n_caras(i) for i in range(self.d + 1)]
-        for i in range(self.d + 1):
-            print(f"Caras de dimensión {i}: {caras_dim[i]}")
-        return caras_dim
-
-    # Cálculo de la característica de Euler
-    def Euler(self):
-        chi = 0
-        # Definimos el sumatorio para la característica de Euler
-        for i in range(self.d + 1):
-            # Calculamos el número de caras de cada dimensión, las de dimensión para se suman
-            # y las de dimensión impar se restan, obteniendo así la característica de Euler
-            chi += (-1) ** i * len(self.n_caras(i))
-        print(f"Característica de Euler: {chi}")
-        return chi
-
-    # La estrella de un símplice c es el conjunto de todas las cocaras de c
-    def estrella_aux(self, c):
-        estrella = set([cara for cara in self.c if set(c).issubset(set(cara))])
-        estrella = sorted(estrella, key=lambda x: x)
-        return estrella
-    # Usamos la función auxiliar para calcular la estrella y luego la imprimimos
-    def estrella(self, c):
-        # Todas las caras que contienen a c
-        estrella = self.estrella_aux(c)
-        print(f"Estrella de {c}: {estrella}")
-        return estrella
-
-    # La estrella cerrada de c es el menor subcomplejo de K que contiene a la estrella de c.
-    def estrella_cerrada_aux(self, c):
-        # Encuentra todas las caras que contienen al menos un vértice de c
-        caras_con_v = [cara for cara in self.c if any(v in cara for v in c)]
-        # Se podria hacer utilizando las caras que devuelve la funcion estrella,
-        # pero nos es mas intuitivo partir desde cero
-        # Añade todas las subcaras de esas caras
-        estrella_cerrada = set()
-        for cara in caras_con_v:
-            for k in range(1, len(cara)+1):
-                for subcara in combinations(cara, k):
-                    estrella_cerrada.add(tuple(sorted(subcara)))
-        estrella_cerrada = sorted(estrella_cerrada, key=lambda x: x)
-        return estrella_cerrada
-
-    # Usamos la función auxiliar para calcular la estrella cerrada
-    # y luego la imprimimos
-    def estrella_cerrada(self, c):
-        estrella_cerrada = self.estrella_cerrada_aux(c)
-        print(f"Estrella cerrada de {c}: {estrella_cerrada}")
-        return estrella_cerrada
-
-    # El link de un símplice c es el conjunto de todos los símplices de la estrella cerrada de c
-    # cuya intersección con la estrella de c es vacía
-    def link_aux(self, c):
-        estrella_cerrada = self.estrella_cerrada_aux(c)
-        estrella = self.estrella_aux(c)
-        link = [cara for cara in estrella_cerrada if cara not in estrella]
-        return link
-
-    # Usamos la función auxiliar para calcular el link
-    # y luego la imprimimos
-    def link(self, c):
-        link = self.link_aux(c)
-        print(f"Link de {c}: {link}")
-        return link
-
-    # No nos han pedido implementar la funcion j_esquelto, pero la hemos hecho igualmente ya que se trata de
-    # una función sencilla
-    def j_esqueleto_aux(self, j):
-        # Comprobamos que j es válido
-        if j < 0 or j > self.d:
-            print(f"No hay esqueleto de dimensión {j} en el complejo.")
-            return []
-        else:
-            # Añadimos aquellas caras que tengan una dimensión menor o igual a j+1
-            esqueleto = sorted(set([cara for cara in self.c if len(cara) <= j + 1]), key=lambda x: x)
-            return esqueleto
-
-    # Usamos la función para calcular el j-esqueleto y luego la imprimimos
-    def j_esqueleto(self, j):
-        esqueleto = self.j_esqueleto_aux(j)
-        print(f"{j}-esqueleto del complejo: {esqueleto}")
-        return esqueleto
-
-    # Se calculan las componentes conexas del complejo usando búsqueda en profundidad (BEP)
-    def componentes_conexas_aux(self):
-        visited = set()
-        components = []
-        # Definimos la funcion bep que solo la vamos a usar aqui, de esta manera conseguimos todos
-        # los vertices accesibles por componente
-        def bep(v, component):
-            visited.add(v)
-            component.append(v)
-            for cara in self.c:
-                if v in cara: # miramos el resto de vértices que estén en la misma cara que v
-                    for u in cara:
-                        if u not in visited:
-                            bep(u, component)
-        # Vemos que vamos visitando
-        for cara in self.c:
-            for v in cara:
-                if v not in visited:
-                    component = []
-                    bep(v, component)
-                    components.append(sorted(component))  # ordenamos el resultado
-        return components
-
-    # Usamos la función auxiliar para calcular las componentes conexas y luego las imprimimos
-    def componentes_conexas(self):
-        components = self.componentes_conexas_aux()
-        print(f"Componentes conexas del complejo: {components}")
-        return components
-
-    # Calculamos el número de componentes conexas
-    def connected_components(self):
-        return len(self.componentes_conexas_aux())
-
-    # El complejo será conexo si tiene una única componente conexa
-    def es_conexo(self):
-        if self.connected_components() == 1:
-            print("El complejo es conexo.")
-            return True
-        else:
-            print("El complejo no es conexo.")
-            return False
-
-###################################### FIN CLASE 2 ##################################
 
 ###################################### CLASE 3 ######################################
 
