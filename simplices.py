@@ -493,6 +493,19 @@ class Complejo_Vietoris_Rips:
     def vertices(self, puntos):
         return [p.vertice for p in puntos]
 
+    # Funcion para mostrar voronoi y Delaunay copiada de los ejemplos
+    def show_voronoi_delaunay(self):
+        # Usamos la librería scipy.spatial para Voronoi, Delaunay y voronoi_plot_2d
+        vor = Voronoi(self.coords_puntos)
+        Del = Delaunay(self.coords_puntos)
+        fig = voronoi_plot_2d(vor,show_vertices=False,line_width=2, line_colors='blue' )
+        c=np.ones(len(self.coords_puntos))
+        cmap = matplotlib.colors.ListedColormap("limegreen")
+        plt.tripcolor(self.coords_puntos[:,0],self.coords_puntos[:,1],Del.simplices, c, edgecolor="k", lw=2,
+        cmap=cmap)
+        plt.plot(self.coords_puntos[:,0], self.coords_puntos[:,1], 'ko')
+        plt.show()
+
 
 # Debemos crearnos una función que calcule la filtración de alfa-complejos asociada a un conjunto de puntos en el plano
 class AlfaComplejo:
@@ -559,19 +572,6 @@ class AlfaComplejo:
         complejo = Complejo_simplicial_filtrado([])
         complejo.insert_filtrado(s_aux, r)
         return complejo
-
-    # Funcion para mostrar voronoi y Delaunay copiada de los ejemplos
-    def show_voronoi_delaunay(self):
-        # Usamos la librería scipy.spatial para Voronoi, Delaunay y voronoi_plot_2d
-        vor = Voronoi(self.coords_puntos)
-        Del = Delaunay(self.coords_puntos)
-        fig = voronoi_plot_2d(vor,show_vertices=False,line_width=2, line_colors='blue' )
-        c=np.ones(len(self.coords_puntos))
-        cmap = matplotlib.colors.ListedColormap("limegreen")
-        plt.tripcolor(self.coords_puntos[:,0],self.coords_puntos[:,1],Del.simplices, c, edgecolor="k", lw=2,
-        cmap=cmap)
-        plt.plot(self.coords_puntos[:,0], self.coords_puntos[:,1], 'ko')
-        plt.show()
 
     # Dibuja el diagrama de Voronoi junto con el alfa-complejo
     def show_voronoi_alfa(self):
