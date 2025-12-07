@@ -111,7 +111,6 @@ class Complejo_simplicial:
             # y las de dimensión impar se restan, obteniendo así la característica de Euler
             chi += (-1) ** i * len(self.n_caras(i))
         print(f"Característica de Euler: {chi}")
-        return chi
 
     # La estrella de un símplice c es el conjunto de todas las cocaras de c
     def estrella_aux(self, c):
