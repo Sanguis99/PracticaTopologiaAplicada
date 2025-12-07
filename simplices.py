@@ -202,16 +202,22 @@ class Complejo_simplicial:
                     betta[p - 1] -= 1
                 elif p == 1:
                     s_dim_p = [Simplice([s[i] for i in range(len(s))]) for s in self.n_caras(p)]
-                    # Cogemos N_i y N_i-1
+                    # Cogemos los vértices, que tienen dim p-1
                     s_dim_p_minus_1 = [Simplice([s[i] for i in range(len(s))]) for s in self.n_caras(p - 1)]
-                    # Ordenamos las listas para que se ordenen por sus indices de vertices
+                    # Ordenamos las listas para que se ordenen por sus índices de vertices
                     s_dim_p_minus_1 = sorted(s_dim_p_minus_1, key=lambda x: x.vertices)
                     s_dim_p = sorted(s_dim_p, key=lambda x: x.vertices)
-                    # Juntamos las dos listas de simplices para que los de dimension p-1 queden primeros
+                    # Juntamos las dos listas de simplices
                     s_dim_p = s_dim_p_minus_1 + s_dim_p
+                    # Ordenamos por longitud para que los vertices queden primeros
                     s_dim_p = sorted(s_dim_p, key=lambda x: (len(x.vertices), x.vertices))
+                    # Definimos el complejo Ni, que al principio será el conjunto de vértices + la primera arista
                     complejo_n_i = Complejo_simplicial(s_dim_p[:len(s_dim_p_minus_1)+i+1])
+                    # Definimos el complejo Ni-1, que al principio será el conjunto de vértices
                     complejo_n_i_minus_1 = Complejo_simplicial(s_dim_p[:len(s_dim_p_minus_1)+i])
+                    # De esta manera, comprobamos el número de componentes conexas de Ni y Ni-1, si Ni tiene las mismas componentes
+                    # conexas, entonces el simplice es positivo, es decir, crea un agujero,
+                    # en caso contrario es negativo porque elimina componentes conexas, es decir tapa un agujero
                     if complejo_n_i.connected_components() == complejo_n_i_minus_1.connected_components():
                         betta[p] += 1
                     else:
