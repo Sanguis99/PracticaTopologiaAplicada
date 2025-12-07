@@ -150,9 +150,8 @@ class Complejo_simplicial:
     # cuya intersección con la estrella de c es vacía
     def link_aux(self, c):
         estrella_cerrada = self.estrella_cerrada_aux(c)
-        estrella = self.estrella_aux(c)
-        link = [cara for cara in estrella_cerrada if cara not in estrella]
-        return link
+        return sorted(
+            [cara for cara in estrella_cerrada if set(cara).isdisjoint(c)],key=lambda x: x)
 
     # Usamos la función auxiliar para calcular el link
     # y luego la imprimimos
