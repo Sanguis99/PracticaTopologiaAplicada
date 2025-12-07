@@ -479,7 +479,6 @@ class Complejo_Vietoris_Rips:
     def r_complex(self, r):
         complex = self.r_complex_aux(r)
         print(f"Complejo de Vietoris-Rips para r = {r}: {[ (s.vertices, s.index) for s in complex.simplices_ordenados ]}")
-        return complex
 
     # Comprueba que no haya ninguna distancia entre puntos mayor a 2r
     # Ya que el diametro del simplice que se está comprobando debe ser su diametro (el supremo de las distancias de los vértices)
