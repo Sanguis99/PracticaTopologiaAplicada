@@ -84,6 +84,9 @@ class Complejo_simplicial:
     def print_caras(self):
         print(f"Caras del complejo: {self.c}")
 
+    def print_n_caras(self,n):
+        print(f"Caras de dimension n: {self.n_caras(n)}")
+
     def dimension(self):
         print(f"Dimensión del complejo: {self.d}")
 
