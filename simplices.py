@@ -90,9 +90,6 @@ class Complejo_simplicial:
     def dimension(self):
         print(f"Dimensión del complejo: {self.d}")
 
-###################################### Fin Clase 1 ######################################
-
-###################################### CLASE 2 ######################################
     # Calculamos el número de caras por dimensión
     def caras_por_dimension(self):
         # Nos vamos cogiendo todas las caras de dimensión i con el metodo ya creado de n_caras
@@ -100,6 +97,11 @@ class Complejo_simplicial:
         for i in range(self.d + 1):
             print(f"Caras de dimensión {i}: {caras_dim[i]}")
         return caras_dim
+
+
+###################################### Fin Clase 1 ######################################
+
+###################################### CLASE 2 ######################################
 
     # Cálculo de la característica de Euler
     def Euler(self):
