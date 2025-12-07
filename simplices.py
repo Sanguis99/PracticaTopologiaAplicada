@@ -125,7 +125,6 @@ class Complejo_simplicial:
         # Todas las caras que contienen a c
         estrella = self.estrella_aux(c)
         print(f"Estrella de {c}: {estrella}")
-        return estrella
 
     # La estrella cerrada de c es el menor subcomplejo de K que contiene a la estrella de c.
     def estrella_cerrada_aux(self, c):
