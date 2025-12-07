@@ -463,6 +463,7 @@ class Punto:
 class Complejo_Vietoris_Rips:
     def __init__(self, points):
         self.puntos = points  # points es una lista de objetos Punto
+        self.coords_puntos = np.array([p.coords for p in points])  # matriz de coordenadas
         self.space_dimension = len(points[0].coords) if points else 0 # Dimensión del espacio en el que están los puntos
 
     # Funcion para calcular el r-complejo de Vietori-Rips
