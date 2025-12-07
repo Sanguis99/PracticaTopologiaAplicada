@@ -502,23 +502,23 @@ class AlfaComplejo:
         A = puntos[s[0]].coords
         B = puntos[s[1]].coords
         C = puntos[s[2]].coords
-        # Calcular el circuncentro y el radio
-        # M1 y M2 son los puntos medios de los segmentos AB y BC respectivamente
-        # m1 y m2 son las pendientes de las mediatrices
-        M1 = (A + B) / 2
-        # si un segmento es vertical asignamos None para evitar divisiones por 0
-        m1 = (B[1] - A[1])/(B[0] - A[0]) if (B[0] - A[0]) != 0 else None
-        M2 = (B + C) / 2
-        # si un segmento es vertical asignamos None para evitar divisiones por 0
-        m2 = (C[1] - B[1])/(C[0] - B[0]) if (C[0] - B[0]) != 0 else None
-        if m1 is not None and m2 is not None:
-            # Coordenadas del centro del circuncirculo
-            x_circ = (m1 * M1[0] - m2 * M2[0] + M2[1] - M1[1]) / (m1 - m2)
-            y_circ = m1 * (x_circ - M1[0]) + M1[1]
-            # radio del circuncirculo (distancia del centro a uno de los vertices)
-            r = np.linalg.norm([x_circ - A[0], y_circ - A[1]])
-            return r
-        return None
+
+        # Lados del triángulo
+        a = np.linalg.norm(B - C)
+        b = np.linalg.norm(A - C)
+        c = np.linalg.norm(A - B)
+
+        # Área del triángulo
+        area = abs(np.cross(B - A, C - A)) / 2
+
+        # Triángulo degenerado
+        if area == 0:
+            return np.inf
+
+        # Radio del circuncírculo (fórmula correcta)
+        R = (a * b * c) / (4 * area)
+
+        return R
 
     def alfa_complejo(self, r):
         # Sacamos la triangulacion de Delaunay, que viene importada de la biblioteca scipy.spatial
