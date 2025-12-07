@@ -195,22 +195,24 @@ class Complejo_simplicial:
             # Caras de dimension p
             # Para cada cara de dimension p creamos un objeto Simplice, para así obtener los simplices de dimension p
             s_dim_p = [Simplice([s[i] for i in range(len(s))]) for s in self.n_caras(p)]
-            for i in range(len(s_dim_p)):
-                if p == 0:  # Todo 0-simplice es positivo, se añade una componente conexa (H0)
-                    betta[p] += 1
-                elif p == 2: # Todo 2-simplice es negativo, eliminamos un agujero de dim p-1 (H1)
-                    betta[p - 1] -= 1
-                elif p == 1:
-                    s_dim_p = [Simplice([s[i] for i in range(len(s))]) for s in self.n_caras(p)]
-                    # Cogemos los vértices, que tienen dim p-1
-                    s_dim_p_minus_1 = [Simplice([s[i] for i in range(len(s))]) for s in self.n_caras(p - 1)]
-                    # Ordenamos las listas para que se ordenen por sus índices de vertices
-                    s_dim_p_minus_1 = sorted(s_dim_p_minus_1, key=lambda x: x.vertices)
-                    s_dim_p = sorted(s_dim_p, key=lambda x: x.vertices)
-                    # Juntamos las dos listas de simplices
-                    s_dim_p = s_dim_p_minus_1 + s_dim_p
-                    # Ordenamos por longitud para que los vertices queden primeros
-                    s_dim_p = sorted(s_dim_p, key=lambda x: (len(x.vertices), x.vertices))
+            if p == 0:  # Todo 0-simplice es positivo, se añade una componente conexa (H0)
+                betta[p] += len(s_dim_p)  # Añadimos al número de betti tantos números como vértices tenemos
+            # Sería equivalente a hacer for i in range(len(s_dim_p)):  betta[p] += 1
+            elif p == 2: # Todo 2-simplice es negativo, eliminamos un agujero de dim p-1 (H1)
+                betta[p - 1] -= len(s_dim_p)  # Restamos a β1 tantos números como triángulos tiene el simplice
+            # Sería equivalente a hacer for i in range(len(s_dim_p)):  betta[p - 1] -= 1
+            elif p == 1:
+                n_aristas = len(s_dim_p)
+                # Cogemos los vértices, que tienen dim p-1
+                s_dim_p_minus_1 = [Simplice([s[i] for i in range(len(s))]) for s in self.n_caras(p - 1)]
+                # Ordenamos las listas para que se ordenen por sus índices de vertices
+                s_dim_p_minus_1 = sorted(s_dim_p_minus_1, key=lambda x: x.vertices)
+                s_dim_p = sorted(s_dim_p, key=lambda x: x.vertices)
+                # Juntamos las dos listas de simplices
+                s_dim_p = s_dim_p_minus_1 + s_dim_p
+                # Ordenamos por longitud para que los vertices queden primeros
+                s_dim_p = sorted(s_dim_p, key=lambda x: (len(x.vertices), x.vertices))
+                for i in range(n_aristas):
                     # Definimos el complejo Ni, que al principio será el conjunto de vértices + la primera arista
                     complejo_n_i = Complejo_simplicial(s_dim_p[:len(s_dim_p_minus_1)+i+1])
                     # Definimos el complejo Ni-1, que al principio será el conjunto de vértices
