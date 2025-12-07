@@ -289,7 +289,6 @@ class Complejo_simplicial:
     def normal_Smith(self, p):
         m_smith = self.normal_Smith_aux(p)
         print(f"Matriz de borde en forma normal de Smith de dimensión {p}:\n{m_smith}")
-        return m_smith
 
     # Podemos sacar los numeros de Betti de la matriz en forma normal de Smith
     # La dimension de Z_p será el nº de columnas de la matriz en p menos su rango
@@ -314,7 +313,7 @@ class Complejo_simplicial:
     def betti(self, p):
         beta_p = self.betti_numbers_aux(p)
         print(f"Número de Betti β_{p}: {beta_p}")
-        return beta_p
+
 ###################################### FIN CLASE 7 ######################################
 
 ###################################### Clase 9 ######################################
@@ -361,7 +360,6 @@ class Complejo_simplicial:
         betta = self.algoritmo_incremental_aux()
         for p in range(self.d):
             print(f"Número de Betti β_{p} (Algoritmo Incremental): {betta[p]}")
-        return betta
 
 ###################################### FIN CLASE 9 ######################################
 
@@ -439,7 +437,6 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
     def simplices_por_filtrado(self, index):
         sf = self.simplices_por_filtrado_aux(index)
         print(f"Símplices con índice de filtrado menor o igual a {index}: {[ (s.vertices, s.index) for s in sf ]}")
-        return sf
 
 #################################### FIN CLASE 3 ##################################
 
