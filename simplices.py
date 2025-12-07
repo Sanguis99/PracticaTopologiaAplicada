@@ -161,7 +161,6 @@ class Complejo_simplicial:
     def link(self, c):
         link = self.link_aux(c)
         print(f"Link de {c}: {link}")
-        return link
 
     # No nos han pedido implementar la funcion j_esquelto, pero la hemos hecho igualmente ya que se trata de
     # una función sencilla
