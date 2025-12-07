@@ -246,7 +246,6 @@ class Complejo_simplicial:
         else:
             m = self.matriz_borde_aux(p)
         print(f"Matriz de borde de dimensión {p}:\n{m}")
-        return m
     
     # Devuelve directamente la matriz borde p en forma normal de Smith
     def normal_Smith_aux(self, p):
