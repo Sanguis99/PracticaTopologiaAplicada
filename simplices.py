@@ -206,7 +206,6 @@ class Complejo_simplicial:
     def componentes_conexas(self):
         components = self.componentes_conexas_aux()
         print(f"Componentes conexas del complejo: {components}")
-        return components
 
     # Calculamos el número de componentes conexas
     def connected_components(self):
