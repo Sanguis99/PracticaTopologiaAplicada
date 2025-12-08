@@ -721,10 +721,22 @@ class Diagrama_Persistencia:
             s_low = self.simplices_ordenados[low]
             s_j = self.simplices_ordenados[j]
             if s_j.dimension == 1: # H0
-                dgm0.append((0, s_j.index))
+                dgm0.append((s_low.index, s_j.index))
             elif s_j.dimension == 2: # H1
                 dgm1.append((s_low.index, s_j.index))
-        dgm0.append((0.0, self.simplices_ordenados[-1].index + 0.85))  # Ultima componente conexa
+        # Añadimos el simplice del infinito
+        # Hay simplice del infinito si y solo si la columna i es todo 0s y la fila i no esta en los lows
+        n = len(self.simplices_ordenados)
+        for j in range(n):
+            if all(self.matriz_borde_completa()[:, j] == 0):
+                if j not in dic_lows.values(): # Values son los valores de los lows
+                    s_j = self.simplices_ordenados[j]
+                    if s_j.dimension == 0:  # H0
+                        dgm0.append((s_j.index, self.simplices_ordenados[-1].index + 0.85)) # El + 0.85 es para que se vea bien en el diagrama
+                        break
+                    elif s_j.dimension == 1:  # H1
+                        dgm1.append((s_j.index, self.simplices_ordenados[-1].index + 0.85)) # El + 0.85 es para que se vea bien en el diagrama
+                        break 
         return dgm0, dgm1
 
     def show_diagrama(self):
@@ -733,7 +745,7 @@ class Diagrama_Persistencia:
         max_index = max([index for pair in self.dgm0 + self.dgm1 for index in pair])
         plt.plot([0, max_index], [0, max_index], 'k--')
         # Creamos la linea igual que x=y pero la ponemos en y = max_index para que se vea bien
-        plt.plot([0, max_index], [max_index, max_index], 'k--', label='Infinito')
+        plt.plot([0, max_index], [max_index, max_index], 'k--', label='∞')
         # Dibujamos dgm0
         if self.dgm0:
             x0, y0 = zip(*self.dgm0)
