@@ -440,7 +440,7 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
 
     def __repr__(self):
         return f"Complejo_simplicial_filtrado(simplices_ordenados={[ (s.vertices, s.index) for s in self.simplices_ordenados ]})"
-    
+
 #################################### FIN CLASE 3 ##################################
 
 ###################################### Clase 4 ######################################
@@ -578,10 +578,6 @@ class AlfaComplejo:
         self.radius = radius
         self.d = self.complex.d
 
-    def caras(self):
-        # Devolvemos una lista con las caras del alfa-complejo
-        return self.complex.c
-
     # Funcion para mostrar voronoi y Delaunay copiada de los ejemplos
     def show_voronoi_delaunay(self):
         # Usamos la librería scipy.spatial para Voronoi, Delaunay y voronoi_plot_2d
@@ -646,7 +642,8 @@ class Diagrama_Persistencia:
 
     def __init__(self, puntos):
         self.puntos = self.toPoint(puntos)
-        self.simplices_ordenados = self.hallar_simplices_ordenados(self.puntos)
+        self.alfa_complejo = self.alfa_complex()
+        self.simplices_ordenados = self.alfa_complejo.complex.simplices_ordenados
         self.dgm0, self.dgm1 = self.calcular_pares_persistencia()
 
     def toPoint(self, points):
@@ -767,7 +764,7 @@ class Diagrama_Persistencia:
     
     def alfa_complex(self):
         ac = AlfaComplejo(self.puntos, 0.0)
-        for s in self.simplices_ordenados:
+        for s in self.hallar_simplices_ordenados(self.puntos):
             ac.insert(s.index)
         return ac
 
@@ -1051,4 +1048,3 @@ if __name__ == "__main__":
     dp = Diagrama_Persistencia([p0, p1, p2, p3, p4, p5])
     dp.show_diagrama()
     dp.show_codigo_barras()
-    dp.alfa_complex().show_voronoi_alfa()
