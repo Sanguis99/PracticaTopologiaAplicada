@@ -6,6 +6,7 @@ from scipy.spatial import Delaunay,Voronoi, voronoi_plot_2d
 # Bibliotecas para las gráficas de los alfa complejos
 import matplotlib.pyplot as plt
 import matplotlib.colors
+from matplotlib.animation import FuncAnimation
 
 # Información sobre los headers de las funciones:
 # Las funciones xx_aux() se usan para calcular xx y devolver el resultado.
@@ -636,6 +637,85 @@ class AlfaComplejo:
             x, y = pt.coords
             print(f"{pt.vertice}: ({float(x):.4f}, {float(y):.4f})")
 
+# ESTAS FUNCIONES SON PARA LA ANIMACIÓN DEL ALFA-COMPLEJO
+# NO SE USAN EN OTROS CASOS
+    def hallar_simplices_ordenados(self, puntos):
+        simplices = []
+        n = len(puntos)
+        # Añadimos los vértices (dim 0)
+        for i in range(n):
+            simplices.append(Simplice_filtrado([i], 0.0))
+        # Añadimos las aristas (dim 1)
+        for i, j in combinations(range(n), 2):
+            d = puntos[i].distancia(puntos[j])
+            simplices.append(Simplice_filtrado([i, j], d / 2))
+        # Añadimos los triángulos (dim 2)
+        for i, j, k in combinations(range(n), 3):
+            d = r_circuncirculo([i, j, k], puntos)
+            simplices.append(Simplice_filtrado([i, j, k], d))
+        # Ordenamos los simplices por indice de filtrado
+        simplices = sorted(simplices, key=lambda x: (x.index, x.dimension, x.vertices))
+        # Eliminamos los simplices que se añaden al añadirse otro mayor con menor índice
+        simplices_filtrados = []
+        for s in simplices:
+            if any(set(s.vertices).issubset(set(existing.vertices)) and s.index >= existing.index for existing in simplices_filtrados):
+                continue
+            simplices_filtrados.append(s)
+        return simplices_filtrados
+
+    def alfa_complex(self):
+        ac = AlfaComplejo(self.puntos, 0.0)
+        for s in self.hallar_simplices_ordenados(self.puntos):
+            ac.insert(s.index)
+        return ac
+
+    def threshold_values(self):
+        thresholds = sorted(set(s.index for s in self.complex.simplices_ordenados))
+        return thresholds
+    
+    def sublevel_complex(self, threshold):
+        sublevel_simplices = [s for s in self.complex.simplices_ordenados if s.index <= threshold]
+        sublevel_complex = Complejo_simplicial_filtrado(sublevel_simplices)
+        return sublevel_complex
+
+    def alphaplot(self):
+        ac = self.alfa_complex()
+        thresholds = ac.threshold_values()
+        fig, ax = plt.subplots()
+        def update(frame):
+            ax.clear()
+            threshold = thresholds[frame]
+            sublevel_complex = ac.sublevel_complex(threshold)
+            p = ac.coords_puntos
+            aristas = set()
+            triangulos = set()
+            for s in sublevel_complex.simplices_ordenados:
+                # Intentamos extraer las aristas y triángulos
+                try:
+                    for e in s.n_caras(1):
+                        aristas.add(tuple(int(v) for v in e))
+                    for t in s.n_caras(2):
+                        triangulos.add(tuple(int(v) for v in t))
+                except Exception:
+                    pass
+            # Dibujamos los triángulos si existen
+            if triangulos:
+                for tri in triangulos:
+                    coords = p[list(tri)]
+                    ax.fill(coords[:, 0], coords[:, 1], facecolor='limegreen', edgecolor='k', alpha=0.3)
+            # Dibujamos las aristas, incluidas las que ya dibujo el triangulo para que todas tengan la misma forma
+            if aristas:
+                for edge in aristas:
+                    xs = p[list(edge), 0]
+                    ys = p[list(edge), 1]
+                    ax.plot(xs, ys, color='k', linewidth=2)
+            # Por ultimo dibujamos los puntos
+            ax.plot(p[:, 0], p[:, 1], 'ko')
+            ax.set_title(f'Alfa-complejo para r = {threshold:.4f}')
+            ax.set_aspect('equal', adjustable='box')
+        ani = FuncAnimation(fig, update, frames=len(thresholds), repeat=True, interval=1000)
+        plt.show()
+
 #################################### Clase 12 ##################################
 
 class Diagrama_Persistencia:
@@ -1064,3 +1144,4 @@ if __name__ == "__main__":
     dp = Diagrama_Persistencia([p0, p1, p2, p3, p4, p5])
     dp.show_diagrama()
     dp.show_codigo_barras()
+    dp.alfa_complejo.alphaplot()
