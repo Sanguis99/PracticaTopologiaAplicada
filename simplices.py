@@ -438,6 +438,9 @@ class Complejo_simplicial_filtrado(Complejo_simplicial):
         sf = self.simplices_por_filtrado_aux(index)
         print(f"Símplices con índice de filtrado menor o igual a {index}: {[ (s.vertices, s.index) for s in sf ]}")
 
+    def __repr__(self):
+        return f"Complejo_simplicial_filtrado(simplices_ordenados={[ (s.vertices, s.index) for s in self.simplices_ordenados ]})"
+    
 #################################### FIN CLASE 3 ##################################
 
 ###################################### Clase 4 ######################################
@@ -488,44 +491,48 @@ class Complejo_Vietoris_Rips:
     def vertices(self, puntos):
         return [p.vertice for p in puntos]
 
+# Funcion para calcular el radio del circuncirculo del triángulo de vértices A,B y C
+def r_circuncirculo(s, puntos):
+    A = puntos[s[0]].coords
+    B = puntos[s[1]].coords
+    C = puntos[s[2]].coords
+    # Lados del triángulo
+    a = np.linalg.norm(B - C)
+    b = np.linalg.norm(A - C)
+    c = np.linalg.norm(A - B)
+    # Área del triángulo (producto cruzado 2D)
+    # Para 2D: cross(u, v) = u[0]*v[1] - u[1]*v[0]
+    area = abs((B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0])) / 2
+    # Triángulo degenerado
+    if area == 0:
+        return np.inf
+    # Radio del circuncírculo (fórmula correcta)
+    R = (a * b * c) / (4 * area)
+    return R
 
 class AlfaComplejo:
     def __init__(self, points, radius):
-        self.puntos = points  # points es una lista de objetos Punto
-        self.coords_puntos = np.array([p.coords for p in points])  # matriz de coordenadas
+        self.puntos = self.toPoint(points)
+        self.coords_puntos = np.array([p.coords for p in self.puntos])  # matriz de coordenadas
         self.complex = self.alfa_complejo(radius)
         self.radius = radius  # radio actual del alpha complejo
         self.d = self.complex.d  # dimensión del complejo
 
-    # Funcion para calcular el radio del circuncirculo del triángulo de vértices A,B y C
-    def r_circuncirculo(self, s, puntos):
-        A = puntos[s[0]].coords
-        B = puntos[s[1]].coords
-        C = puntos[s[2]].coords
-
-        # Lados del triángulo
-        a = np.linalg.norm(B - C)
-        b = np.linalg.norm(A - C)
-        c = np.linalg.norm(A - B)
-
-        # Área del triángulo
-        area = abs(np.cross(B - A, C - A)) / 2
-
-        # Triángulo degenerado
-        if area == 0:
-            return np.inf
-
-        # Radio del circuncírculo (fórmula correcta)
-        R = (a * b * c) / (4 * area)
-
-        return R
+    def toPoint(self, points):
+        # Comprobamos que no son del tipo point
+        if points and isinstance(points[0], Punto):
+            return points
+        puntos = []
+        for i in range(len(points)):
+            puntos.append(Punto(i, points[i]))
+        return puntos
 
     def alfa_complejo(self, r):
         # Sacamos la triangulacion de Delaunay, que viene importada de la biblioteca scipy.spatial
         Del = Delaunay(self.coords_puntos)  
         simplices = []
         for s in Del.simplices:  # lista de triángulos de Delaunay
-            radio_circuncirculo = self.r_circuncirculo(s, self.puntos)
+            radio_circuncirculo = r_circuncirculo(s, self.puntos)
             # Un triángulo de Delaunay pertenece a Aplpha(r) si y solo si r es mayor o igual que el radio de la
             # circnferencia que pasa por los tres puntos del triángulo de Delaunay
             if radio_circuncirculo is not None and radio_circuncirculo <= r:
@@ -553,6 +560,27 @@ class AlfaComplejo:
         complejo = Complejo_simplicial_filtrado([])
         complejo.insert_filtrado(s_aux, r)
         return complejo
+
+    def insert(self, radius):
+        # Hallamos el alfa-complejo para el nuevo radio
+        new_complex = self.alfa_complejo(radius)
+        # Insertamos los nuevos símplices en el complejo actual
+        for s in new_complex.simplices:
+            # Si el símplice ya existe o esta contenido en otro simplice, mantenemos el de menor índice
+            if any(set(s.vertices) == set(existing.vertices) for existing in self.complex.simplices):
+                e = [existing for existing in self.complex.simplices if set(s.vertices) == set(existing.vertices)][0]
+                if s.index < e.index:
+                    self.complex.simplices.remove(e)
+                else:
+                    continue
+            self.complex.insert_filtrado([s], radius)
+        # Actualizamos el radio y la dimension del complejo
+        self.radius = radius
+        self.d = self.complex.d
+
+    def caras(self):
+        # Devolvemos una lista con las caras del alfa-complejo
+        return self.complex.c
 
     # Funcion para mostrar voronoi y Delaunay copiada de los ejemplos
     def show_voronoi_delaunay(self):
@@ -612,6 +640,131 @@ class AlfaComplejo:
             x, y = pt.coords
             print(f"{pt.vertice}: ({float(x):.4f}, {float(y):.4f})")
 
+#################################### Clase 12 ##################################
+
+class Diagrama_Persistencia:
+
+    def __init__(self, puntos):
+        self.puntos = self.toPoint(puntos)
+        self.simplices_ordenados = self.hallar_simplices_ordenados(self.puntos)
+        self.dgm0, self.dgm1 = self.calcular_pares_persistencia()
+
+    def toPoint(self, points):
+        # Comprobamos que no son del tipo point
+        if points and isinstance(points[0], Punto):
+            return points
+        puntos = []
+        for i in range(len(points)):
+            puntos.append(Punto(i, points[i]))
+        return puntos
+
+    def hallar_simplices_ordenados(self, puntos):
+        simplices = []
+        n = len(puntos)
+        # Añadimos los vértices (dim 0)
+        for i in range(n):
+            simplices.append(Simplice_filtrado([i], 0.0))
+        # Añadimos las aristas (dim 1)
+        for i, j in combinations(range(n), 2):
+            d = puntos[i].distancia(puntos[j])
+            simplices.append(Simplice_filtrado([i, j], d / 2))
+        # Añadimos los triángulos (dim 2)
+        for i, j, k in combinations(range(n), 3):
+            d = r_circuncirculo([i, j, k], puntos)
+            simplices.append(Simplice_filtrado([i, j, k], d))
+        # Ordenamos los simplices por indice de filtrado
+        simplices = sorted(simplices, key=lambda x: (x.index, x.dimension, x.vertices))
+        # Eliminamos los simplices que se añaden al añadirse otro mayor con menor índice
+        simplices_filtrados = []
+        for s in simplices:
+            if any(set(s.vertices).issubset(set(existing.vertices)) and s.index >= existing.index for existing in simplices_filtrados):
+                continue
+            simplices_filtrados.append(s)
+        return simplices_filtrados
+
+    def matriz_borde_completa(self):
+        m = np.zeros((len(self.simplices_ordenados), len(self.simplices_ordenados)), dtype=int)
+        for i in range(len(self.simplices_ordenados)):
+            for j in range(len(self.simplices_ordenados)):
+                if set(self.simplices_ordenados[i].vertices).issubset(set(self.simplices_ordenados[j].vertices)) and self.simplices_ordenados[j].dimension - self.simplices_ordenados[i].dimension == 1:
+                    m[i, j] = 1
+        return m
+
+    def hallar_lows(self, puntos):
+        ac = AlfaComplejo(puntos, 0.0)
+        # Primero sacamos una lista de todos los simplices posibles de dimensión 0, 1 y 2
+        # Donde a cada simplice le ponemos como indice de filtrado el radio mínimo necesario para que se añada al complejo
+        border_matrix = self.matriz_borde_completa()
+        n, _ = border_matrix.shape
+        dic_lows = {}
+        for j in range(n):
+            while True:
+                # Cogemos todos los indices que nos son 0 en la columna j
+                indices = np.flatnonzero(border_matrix[:, j])
+                low = int(indices[-1]) if len(indices) > 0 else None
+                # La columna no tiene ningun 1
+                if low is None:
+                    break
+                # La columna tiene un low que ya no esta en dic_lows
+                if low not in dic_lows.keys():
+                    dic_lows[low] = j
+                    break
+                # La columna tiene un low que ya esta en dic_lows
+                j_prime = dic_lows[low]
+                col = border_matrix[:, j_prime]
+                border_matrix[:, j] = (border_matrix[:, j] + col) % 2
+        return dic_lows
+
+    def calcular_pares_persistencia(self):
+        # cojo fila y columna -> i,j -> a = self.simplices_ordenados[i], b = self.simplices_ordenados[j] -> a.index, b.index
+        dic_lows = self.hallar_lows(self.puntos)
+        dgm0 = []  # pares de persistencia para H0
+        dgm1 = []  # pares de persistencia para H1
+        for low, j in dic_lows.items():
+            s_low = self.simplices_ordenados[low]
+            s_j = self.simplices_ordenados[j]
+            if s_j.dimension == 1: # H0
+                dgm0.append((s_low.index, s_j.index))
+            elif s_j.dimension == 2: # H1
+                dgm1.append((s_low.index, s_j.index))
+        dgm0.append((0.0, self.simplices_ordenados[-1].index))  #Ultima componente conexa
+        return dgm0, dgm1
+
+    def show_diagrama(self):
+        # Usamos matplotlib para dibujar dmg0 y dgm1 ambos en el mismo plot
+        plt.figure(figsize=(8, 8))
+        max_index = max([index for pair in self.dgm0 + self.dgm1 for index in pair]) + 1
+        plt.plot([0, max_index], [0, max_index], 'k--', label='y=x')
+        # Dibujamos dgm0
+        if self.dgm0:
+            x0, y0 = zip(*self.dgm0)
+            plt.scatter(x0, y0, color='blue', label='H0', s=100)
+        # Dibujamos dgm1
+        if self.dgm1:
+            x1, y1 = zip(*self.dgm1)
+            plt.scatter(x1, y1, color='red', label='H1', s=100)
+        plt.xlabel('Birth')
+        plt.ylabel('Death')
+        plt.title('Diagrama de Persistencia')
+        plt.legend()
+        plt.show()
+
+    def show_codigo_barras(self):
+        # Usamos matplotlib para dibujar el codigo de barras de dgm0 y dgm1
+        plt.figure(figsize=(10, 6))
+        # Dibujamos dgm0
+        for i, (birth, death) in enumerate(self.dgm0):
+            plt.hlines(y=i, xmin=birth, xmax=death if death != float('inf') else max(birth + 1, 10), colors='blue', lw=4)
+        # Dibujamos dgm1
+        offset = len(self.dgm0) + 1
+        for i, (birth, death) in enumerate(self.dgm1):
+            plt.hlines(y=offset + i, xmin=birth, xmax=death if death != float('inf') else max(birth + 1, 10), colors='red', lw=4)
+        plt.xlabel('Filtration Value')
+        plt.ylabel('Homology Classes')
+        plt.title('Barcode Diagram')
+        plt.yticks([])
+        plt.show()
+
 ###################################### Ejemplo de Uso ######################################
 if __name__ == "__main__":
     # # Definimos los símplices maximales del complejo
@@ -666,220 +819,229 @@ if __name__ == "__main__":
     # ac.print_points()
     # # ac.show_voronoi_delaunay()
     # ac.show_voronoi_alfa()
-    print("####################################################")
-    print("#              Ejercicios Matriz Borde             #")
-    print("####################################################")
-    s1 = Simplice([0,1])
-    s2 = Simplice([1,2,3,4])
-    s3 = Simplice([4,5])
-    s4 = Simplice([4,6])
-    s5 = Simplice([5,6])
-    s6 = Simplice([6,7,8])
-    s7 = Simplice([8,9])
-    diapositiva_4 = Complejo_simplicial([s1, s2, s3, s4, s5, s6, s7])
-    diapositiva_4.matriz_borde(1)
-    print("####################################################")
-    print("#              Ejercicios Normal Smith             #")
-    print("####################################################")
-    s1 = Simplice([0,1,2,3])
-    tetraedro = Complejo_simplicial([s1])
-    tetraedro.normal_Smith(1)
-    print("####################################################")
-    print("#                Ejercicios Betti                  #")
-    print("####################################################")
-    print("+--------------------------------------------------+")
-    print("+          Numeros de Betti del tetraedro          +")
-    print("+--------------------------------------------------+")
-    for i in range(tetraedro.d + 1):
-        tetraedro.betti(i)
-    print("+--------------------------------------------------+")
-    print("+     Numeros de Betti del borde del tetraedro     +")
-    print("+--------------------------------------------------+")
-    bt = Complejo_simplicial([Simplice(s) for s in tetraedro.n_caras(tetraedro.d - 1)])
-    for i in range(bt.d + 1):
-        bt.betti(i)
-    print("+--------------------------------------------------+")
-    print("+            Numeros de Betti del toro             +")
-    print("+--------------------------------------------------+")
-    a1 = Simplice([1,7,8])
-    a2 = Simplice([1,2,8])
-    a3 = Simplice([2,8,9])
-    a4 = Simplice([2,3,9])
-    a5 = Simplice([3,7,9])
-    a6 = Simplice([1,3,7])
-    a7 = Simplice([1,2,4])
-    a8 = Simplice([2,4,5])
-    a9 = Simplice([2,3,5])
-    a10 = Simplice([3,5,6])
-    a11 = Simplice([1,3,6])
-    a12 = Simplice([1,4,6])
-    a13 = Simplice([4,5,7])
-    a14 = Simplice([5,7,8])
-    a15 = Simplice([5,6,8])
-    a16 = Simplice([6,8,9])
-    a17 = Simplice([4,6,9])
-    a18 = Simplice([4,7,9])
-    t = Complejo_simplicial([a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18])
-    for i in range(t.d + 1):
-        t.betti(i)
-    print("+--------------------------------------------------+")
-    print("+     Numeros de Betti de la botella de Klein      +")
-    print("+--------------------------------------------------+")
-    b1 = Simplice([1,7,8])
-    b2 = Simplice([1,2,8])
-    b3 = Simplice([2,8,9])
-    b4 = Simplice([2,3,9])
-    b5 = Simplice([3,7,9])
-    b6 = Simplice([3,4,7])
-    b7 = Simplice([1,2,4])
-    b8 = Simplice([2,4,5])
-    b9 = Simplice([2,3,5])
-    b10 = Simplice([3,5,6])
-    b11 = Simplice([3,4,6])
-    b12 = Simplice([1,4,6])
-    b13 = Simplice([4,5,7])
-    b14 = Simplice([5,7,8])
-    b15 = Simplice([5,6,8])
-    b16 = Simplice([6,8,9])
-    b17 = Simplice([1,6,9])
-    b18 = Simplice([1,7,9])
-    bk = Complejo_simplicial([b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16,b17,b18])
-    for i in range(bk.d + 1):
-        bk.betti(i)
-    print("+--------------------------------------------------+")
-    print("+           Numeros de Betti del anillo            +")
-    print("+--------------------------------------------------+")
-    t1 = Simplice([0,1,3])
-    t2 = Simplice([0,3,5])
-    t3 = Simplice([0,2,5])
-    t4 = Simplice([2,4,5])
-    t5 = Simplice([1,2,4])
-    t6 = Simplice([1,3,4])
-    anillo = Complejo_simplicial([t1,t2,t3,t4,t5,t6])
-    for i in range(anillo.d + 1):
-        anillo.betti(i)
-    print("+--------------------------------------------------+")
-    print("+       Numeros de Betti del plano proyectivo      +")
-    print("+--------------------------------------------------+")
-    c1 = Simplice([1,9,10])
-    c2 = Simplice([1,2,9])
-    c3 = Simplice([2,8,9])
-    c4 = Simplice([2,3,8])
-    c5 = Simplice([3,7,8])
-    c6 = Simplice([3,4,7])
-    c7 = Simplice([1,2,4])
-    c8 = Simplice([2,4,5])
-    c9 = Simplice([2,3,5])
-    c10 = Simplice([3,5,6])
-    c11 = Simplice([3,4,6])
-    c12 = Simplice([1,4,6])
-    c13 = Simplice([4,5,7])
-    c14 = Simplice([5,7,8])
-    c15 = Simplice([5,6,8])
-    c16 = Simplice([6,8,9])
-    c17 = Simplice([1,6,9])
-    c18 = Simplice([1,9,10])
-    pp = Complejo_simplicial([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18])
-    for i in range(pp.d + 1):
-        pp.betti(i)
-    print("+--------------------------------------------------+")
-    print("+      Numeros de Betti del Sombrero de Asno       +")
-    print("+--------------------------------------------------+")
-    sombrero_asno = Complejo_simplicial([Simplice([1,3,5]),Simplice([1,5,6]),Simplice([1,3,6]),Simplice([2,3,5]),
-                                        Simplice([2,4,5]),Simplice([4,5,6]),Simplice([4,6,8]),Simplice([6,7,8]),
-                                        Simplice([3,6,7]),Simplice([2,3,7]),Simplice([1,2,7]),Simplice([1,7,8]),
-                                        Simplice([1,2,8]),Simplice([2,3,8]),Simplice([3,4,8]),Simplice([1,3,4]),
-                                        Simplice([1,2,4])])
-    for i in range(sombrero_asno.d + 1):
-        sombrero_asno.betti(i)
-    print("+--------------------------------------------------+")
-    print("+          Numeros de Betti del doble toro         +")
-    print("+--------------------------------------------------+")
-    # Para este hay que hacer 2 toros distintos donde la esquina superior derecha de uno
-    # se una con la esquina superior izquierda del otro
-    # Toro 1
-    d1 = Simplice([1,7,8])
-    d2 = Simplice([1,2,8])
-    d3 = Simplice([2,8,9])
-    d4 = Simplice([2,3,9])
-    d5 = Simplice([3,7,9])
-    d6 = Simplice([3,1,7])
-    d7 = Simplice([1,2,4])
-    d8 = Simplice([2,4,5])
-    d9 = Simplice([2,3,5])
-    d10 = Simplice([3,5,6])
-    d11 = Simplice([1,3,6])
-    d12 = Simplice([1,4,6])
-    d13 = Simplice([4,5,7])
-    d14 = Simplice([5,7,8])
-    d15 = Simplice([5,6,8])
-    d16 = Simplice([6,8,9])
-    d17 = Simplice([4,6,9])
-    d18 = Simplice([4,7,9])
-    # Toro 2 (Se unen en el vertice 7)
-    e1 = Simplice([7,10,17])
-    e2 = Simplice([10,11,17])
-    e3 = Simplice([11,17,18])
-    e4 = Simplice([11,12,18])
-    e5 = Simplice([7,12,18])
-    e6 = Simplice([7,10,12])
-    e7 = Simplice([10,11,13])
-    e8 = Simplice([11,13,14])
-    e9 = Simplice([11,12,14])
-    e10 = Simplice([12,14,15])
-    e11 = Simplice([10,12,15])
-    e12 = Simplice([10,13,15])
-    e13 = Simplice([13,14,16])
-    e14 = Simplice([14,16,17])
-    e15 = Simplice([14,15,17])
-    e16 = Simplice([15,17,18])
-    e17 = Simplice([13,15,18])
-    e18 = Simplice([7,13,18])
-    doble_toro = Complejo_simplicial([d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,
-                                      e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18])
-    for i in range(doble_toro.d + 1):
-        doble_toro.betti(i)
-    print("+--------------------------------------------------+")
-    print("+ Numeros de Betti del ejemplo de la diapositiva 4 +")
-    print("+--------------------------------------------------+")
-    for i in range(diapositiva_4.d + 1):
-        diapositiva_4.betti(i)
-    print("+--------------------------------------------------+")
-    print("+    Numeros de Betti de algunos alfa complejos    +")
-    print("+--------------------------------------------------+")
-    # Definimos varios alfa-complejos distintos
-    points1 = np.random.rand(10,2)
-    points2 = np.random.rand(10,2)
-    points3 = np.random.rand(10,2)
-    points4 = np.random.rand(10,2)
-    p = [[Punto(i, points1[i]) for i in range(len(points1))], 
-        [Punto(i, points2[i]) for i in range(len(points2))], 
-        [Punto(i, points3[i]) for i in range(len(points3))], 
-        [Punto(i, points4[i]) for i in range(len(points4))]]
-    acom = [AlfaComplejo(p[0], 0.25),
-            AlfaComplejo(p[1], 0.25),
-            AlfaComplejo(p[2], 0.25),
-            AlfaComplejo(p[3], 0.25)]
-    for i in range(len(acom)):
-        # Por si se quiere visualizar los alfa-complejos antes de ver sus numeros de Betti
-        # print("Imprimimos el complejo, sus puntos y hacemos un plot del alfa complejo.")
-        # acom[i].print_complex()
-        # acom[i].print_points()
-        # acom[i].show_voronoi_alfa()
-        print(f"Numeros de Betti del alfa-complejo {i + 1}:")
-        for j in range(acom[i].d + 1):
-            acom[i].complex.betti(j)
-    print("+--------------------------------------------------+")
-    print("+                Algoritmo incremental             +")
-    print("+--------------------------------------------------+")
-    s1 = Simplice([0,1,2])
-    s2 = Simplice([1,2,3])
-    s3 = Simplice([1,4,5])
-    s4 = Simplice([4,5,6])
-    s5 = Simplice([5,6,7])
-    s6 = Simplice([5,7,8])
-    s7 = Simplice([3,8])
-    s8 = Simplice([3,9])
-    s9 = Simplice([8,9])
-    complejo_incremental = Complejo_simplicial([s1,s2,s3,s4,s5,s6,s7,s8,s9])
-    complejo_incremental.algoritmo_incremental()
+    # print("####################################################")
+    # print("#              Ejercicios Matriz Borde             #")
+    # print("####################################################")
+    # s1 = Simplice([0,1])
+    # s2 = Simplice([1,2,3,4])
+    # s3 = Simplice([4,5])
+    # s4 = Simplice([4,6])
+    # s5 = Simplice([5,6])
+    # s6 = Simplice([6,7,8])
+    # s7 = Simplice([8,9])
+    # diapositiva_4 = Complejo_simplicial([s1, s2, s3, s4, s5, s6, s7])
+    # diapositiva_4.matriz_borde(1)
+    # print("####################################################")
+    # print("#              Ejercicios Normal Smith             #")
+    # print("####################################################")
+    # s1 = Simplice([0,1,2,3])
+    # tetraedro = Complejo_simplicial([s1])
+    # tetraedro.normal_Smith(1)
+    # print("####################################################")
+    # print("#                Ejercicios Betti                  #")
+    # print("####################################################")
+    # print("+--------------------------------------------------+")
+    # print("+          Numeros de Betti del tetraedro          +")
+    # print("+--------------------------------------------------+")
+    # for i in range(tetraedro.d + 1):
+    #     tetraedro.betti(i)
+    # print("+--------------------------------------------------+")
+    # print("+     Numeros de Betti del borde del tetraedro     +")
+    # print("+--------------------------------------------------+")
+    # bt = Complejo_simplicial([Simplice(s) for s in tetraedro.n_caras(tetraedro.d - 1)])
+    # for i in range(bt.d + 1):
+    #     bt.betti(i)
+    # print("+--------------------------------------------------+")
+    # print("+            Numeros de Betti del toro             +")
+    # print("+--------------------------------------------------+")
+    # a1 = Simplice([1,7,8])
+    # a2 = Simplice([1,2,8])
+    # a3 = Simplice([2,8,9])
+    # a4 = Simplice([2,3,9])
+    # a5 = Simplice([3,7,9])
+    # a6 = Simplice([1,3,7])
+    # a7 = Simplice([1,2,4])
+    # a8 = Simplice([2,4,5])
+    # a9 = Simplice([2,3,5])
+    # a10 = Simplice([3,5,6])
+    # a11 = Simplice([1,3,6])
+    # a12 = Simplice([1,4,6])
+    # a13 = Simplice([4,5,7])
+    # a14 = Simplice([5,7,8])
+    # a15 = Simplice([5,6,8])
+    # a16 = Simplice([6,8,9])
+    # a17 = Simplice([4,6,9])
+    # a18 = Simplice([4,7,9])
+    # t = Complejo_simplicial([a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18])
+    # for i in range(t.d + 1):
+    #     t.betti(i)
+    # print("+--------------------------------------------------+")
+    # print("+     Numeros de Betti de la botella de Klein      +")
+    # print("+--------------------------------------------------+")
+    # b1 = Simplice([1,7,8])
+    # b2 = Simplice([1,2,8])
+    # b3 = Simplice([2,8,9])
+    # b4 = Simplice([2,3,9])
+    # b5 = Simplice([3,7,9])
+    # b6 = Simplice([3,4,7])
+    # b7 = Simplice([1,2,4])
+    # b8 = Simplice([2,4,5])
+    # b9 = Simplice([2,3,5])
+    # b10 = Simplice([3,5,6])
+    # b11 = Simplice([3,4,6])
+    # b12 = Simplice([1,4,6])
+    # b13 = Simplice([4,5,7])
+    # b14 = Simplice([5,7,8])
+    # b15 = Simplice([5,6,8])
+    # b16 = Simplice([6,8,9])
+    # b17 = Simplice([1,6,9])
+    # b18 = Simplice([1,7,9])
+    # bk = Complejo_simplicial([b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16,b17,b18])
+    # for i in range(bk.d + 1):
+    #     bk.betti(i)
+    # print("+--------------------------------------------------+")
+    # print("+           Numeros de Betti del anillo            +")
+    # print("+--------------------------------------------------+")
+    # t1 = Simplice([0,1,3])
+    # t2 = Simplice([0,3,5])
+    # t3 = Simplice([0,2,5])
+    # t4 = Simplice([2,4,5])
+    # t5 = Simplice([1,2,4])
+    # t6 = Simplice([1,3,4])
+    # anillo = Complejo_simplicial([t1,t2,t3,t4,t5,t6])
+    # for i in range(anillo.d + 1):
+    #     anillo.betti(i)
+    # print("+--------------------------------------------------+")
+    # print("+       Numeros de Betti del plano proyectivo      +")
+    # print("+--------------------------------------------------+")
+    # c1 = Simplice([1,9,10])
+    # c2 = Simplice([1,2,9])
+    # c3 = Simplice([2,8,9])
+    # c4 = Simplice([2,3,8])
+    # c5 = Simplice([3,7,8])
+    # c6 = Simplice([3,4,7])
+    # c7 = Simplice([1,2,4])
+    # c8 = Simplice([2,4,5])
+    # c9 = Simplice([2,3,5])
+    # c10 = Simplice([3,5,6])
+    # c11 = Simplice([3,4,6])
+    # c12 = Simplice([1,4,6])
+    # c13 = Simplice([4,5,7])
+    # c14 = Simplice([5,7,8])
+    # c15 = Simplice([5,6,8])
+    # c16 = Simplice([6,8,9])
+    # c17 = Simplice([1,6,9])
+    # c18 = Simplice([1,9,10])
+    # pp = Complejo_simplicial([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18])
+    # for i in range(pp.d + 1):
+    #     pp.betti(i)
+    # print("+--------------------------------------------------+")
+    # print("+      Numeros de Betti del Sombrero de Asno       +")
+    # print("+--------------------------------------------------+")
+    # sombrero_asno = Complejo_simplicial([Simplice([1,3,5]),Simplice([1,5,6]),Simplice([1,3,6]),Simplice([2,3,5]),
+    #                                     Simplice([2,4,5]),Simplice([4,5,6]),Simplice([4,6,8]),Simplice([6,7,8]),
+    #                                     Simplice([3,6,7]),Simplice([2,3,7]),Simplice([1,2,7]),Simplice([1,7,8]),
+    #                                     Simplice([1,2,8]),Simplice([2,3,8]),Simplice([3,4,8]),Simplice([1,3,4]),
+    #                                     Simplice([1,2,4])])
+    # for i in range(sombrero_asno.d + 1):
+    #     sombrero_asno.betti(i)
+    # print("+--------------------------------------------------+")
+    # print("+          Numeros de Betti del doble toro         +")
+    # print("+--------------------------------------------------+")
+    # # Para este hay que hacer 2 toros distintos donde la esquina superior derecha de uno
+    # # se una con la esquina superior izquierda del otro
+    # # Toro 1
+    # d1 = Simplice([1,7,8])
+    # d2 = Simplice([1,2,8])
+    # d3 = Simplice([2,8,9])
+    # d4 = Simplice([2,3,9])
+    # d5 = Simplice([3,7,9])
+    # d6 = Simplice([3,1,7])
+    # d7 = Simplice([1,2,4])
+    # d8 = Simplice([2,4,5])
+    # d9 = Simplice([2,3,5])
+    # d10 = Simplice([3,5,6])
+    # d11 = Simplice([1,3,6])
+    # d12 = Simplice([1,4,6])
+    # d13 = Simplice([4,5,7])
+    # d14 = Simplice([5,7,8])
+    # d15 = Simplice([5,6,8])
+    # d16 = Simplice([6,8,9])
+    # d17 = Simplice([4,6,9])
+    # d18 = Simplice([4,7,9])
+    # # Toro 2 (Se unen en el vertice 7)
+    # e1 = Simplice([7,10,17])
+    # e2 = Simplice([10,11,17])
+    # e3 = Simplice([11,17,18])
+    # e4 = Simplice([11,12,18])
+    # e5 = Simplice([7,12,18])
+    # e6 = Simplice([7,10,12])
+    # e7 = Simplice([10,11,13])
+    # e8 = Simplice([11,13,14])
+    # e9 = Simplice([11,12,14])
+    # e10 = Simplice([12,14,15])
+    # e11 = Simplice([10,12,15])
+    # e12 = Simplice([10,13,15])
+    # e13 = Simplice([13,14,16])
+    # e14 = Simplice([14,16,17])
+    # e15 = Simplice([14,15,17])
+    # e16 = Simplice([15,17,18])
+    # e17 = Simplice([13,15,18])
+    # e18 = Simplice([7,13,18])
+    # doble_toro = Complejo_simplicial([d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,
+    #                                   e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18])
+    # for i in range(doble_toro.d + 1):
+    #     doble_toro.betti(i)
+    # print("+--------------------------------------------------+")
+    # print("+ Numeros de Betti del ejemplo de la diapositiva 4 +")
+    # print("+--------------------------------------------------+")
+    # for i in range(diapositiva_4.d + 1):
+    #     diapositiva_4.betti(i)
+    # print("+--------------------------------------------------+")
+    # print("+    Numeros de Betti de algunos alfa complejos    +")
+    # print("+--------------------------------------------------+")
+    # # Definimos varios alfa-complejos distintos
+    # points1 = np.random.rand(10,2)
+    # points2 = np.random.rand(10,2)
+    # points3 = np.random.rand(10,2)
+    # points4 = np.random.rand(10,2)
+    # p = [[Punto(i, points1[i]) for i in range(len(points1))], 
+    #     [Punto(i, points2[i]) for i in range(len(points2))], 
+    #     [Punto(i, points3[i]) for i in range(len(points3))], 
+    #     [Punto(i, points4[i]) for i in range(len(points4))]]
+    # acom = [AlfaComplejo(p[0], 0.25),
+    #         AlfaComplejo(p[1], 0.25),
+    #         AlfaComplejo(p[2], 0.25),
+    #         AlfaComplejo(p[3], 0.25)]
+    # for i in range(len(acom)):
+    #     # Por si se quiere visualizar los alfa-complejos antes de ver sus numeros de Betti
+    #     # print("Imprimimos el complejo, sus puntos y hacemos un plot del alfa complejo.")
+    #     # acom[i].print_complex()
+    #     # acom[i].print_points()
+    #     # acom[i].show_voronoi_alfa()
+    #     print(f"Numeros de Betti del alfa-complejo {i + 1}:")
+    #     for j in range(acom[i].d + 1):
+    #         acom[i].complex.betti(j)
+    # print("+--------------------------------------------------+")
+    # print("+                Algoritmo incremental             +")
+    # print("+--------------------------------------------------+")
+    # s1 = Simplice([0,1,2])
+    # s2 = Simplice([1,2,3])
+    # s3 = Simplice([1,4,5])
+    # s4 = Simplice([4,5,6])
+    # s5 = Simplice([5,6,7])
+    # s6 = Simplice([5,7,8])
+    # s7 = Simplice([3,8])
+    # s8 = Simplice([3,9])
+    # s9 = Simplice([8,9])
+    # complejo_incremental = Complejo_simplicial([s1,s2,s3,s4,s5,s6,s7,s8,s9])
+    # complejo_incremental.algoritmo_incremental()
+    p0 = Punto(0, (-0.75, 1.06))
+    p1 = Punto(1, (1.0, 1.732))
+    p2 = Punto(2, (2.75, 1.06))
+    p3 = Punto(3, (0.0, 0.0))
+    p4 = Punto(4, (2.0, 0.0))
+    p5 = Punto(5, (1.0, -1.30))
+    dp = Diagrama_Persistencia([p0, p1, p2, p3, p4, p5])
+    dp.show_diagrama()
+    dp.show_codigo_barras()
