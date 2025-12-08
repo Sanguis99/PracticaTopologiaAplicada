@@ -724,14 +724,16 @@ class Diagrama_Persistencia:
                 dgm0.append((s_low.index, s_j.index))
             elif s_j.dimension == 2: # H1
                 dgm1.append((s_low.index, s_j.index))
-        dgm0.append((0.0, self.simplices_ordenados[-1].index))  #Ultima componente conexa
+        dgm0.append((0.0, self.simplices_ordenados[-1].index + 0.85))  # Ultima componente conexa
         return dgm0, dgm1
 
     def show_diagrama(self):
         # Usamos matplotlib para dibujar dmg0 y dgm1 ambos en el mismo plot
         plt.figure(figsize=(8, 8))
-        max_index = max([index for pair in self.dgm0 + self.dgm1 for index in pair]) + 1
-        plt.plot([0, max_index], [0, max_index], 'k--', label='y=x')
+        max_index = max([index for pair in self.dgm0 + self.dgm1 for index in pair])
+        plt.plot([0, max_index], [0, max_index], 'k--')
+        # Creamos la linea igual que x=y pero la ponemos en y = max_index para que se vea bien
+        plt.plot([0, max_index], [max_index, max_index], 'k--', label='Infinito')
         # Dibujamos dgm0
         if self.dgm0:
             x0, y0 = zip(*self.dgm0)
