@@ -7,6 +7,7 @@ from scipy.spatial import Delaunay,Voronoi, voronoi_plot_2d
 import matplotlib.pyplot as plt
 import matplotlib.colors
 from matplotlib.animation import FuncAnimation
+from IPython.display import HTML
 
 # Información sobre los headers de las funciones:
 # Las funciones xx_aux() se usan para calcular xx y devolver el resultado.
@@ -716,6 +717,7 @@ class AlfaComplejo:
             ax.set_title(f'Alfa-complejo para r = {threshold:.4f}')
             ax.set_aspect('equal', adjustable='box')
         ani = FuncAnimation(fig, update, frames=len(thresholds), repeat=True, interval=1000)
+        HTML(ani.to_jshtml())
         plt.show()
 
 #################################### Clase 12 ##################################
