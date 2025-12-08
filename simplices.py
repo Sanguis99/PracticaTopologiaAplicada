@@ -742,8 +742,8 @@ class Diagrama_Persistencia:
         if self.dgm1:
             x1, y1 = zip(*self.dgm1)
             plt.scatter(x1, y1, color='red', label='H1', s=100)
-        plt.xlabel('Birth')
-        plt.ylabel('Death')
+        plt.xlabel('Nacimiento')
+        plt.ylabel('Muerte')
         plt.title('Diagrama de Persistencia')
         plt.legend()
         plt.show()
@@ -758,9 +758,9 @@ class Diagrama_Persistencia:
         offset = len(self.dgm0) + 1
         for i, (birth, death) in enumerate(self.dgm1):
             plt.hlines(y=offset + i, xmin=birth, xmax=death if death != float('inf') else max(birth + 1, 10), colors='red', lw=4)
-        plt.xlabel('Filtration Value')
-        plt.ylabel('Homology Classes')
-        plt.title('Barcode Diagram')
+        plt.xlabel('Valor de Filtración')
+        plt.ylabel('Clases de Homología')
+        plt.title('Diagrama de Código de Barras')
         plt.yticks([])
         plt.show()
     
