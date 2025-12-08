@@ -764,6 +764,12 @@ class Diagrama_Persistencia:
         plt.title('Barcode Diagram')
         plt.yticks([])
         plt.show()
+    
+    def alfa_complex(self):
+        ac = AlfaComplejo(self.puntos, 0.0)
+        for s in self.simplices_ordenados:
+            ac.insert(s.index)
+        return ac
 
 ###################################### Ejemplo de Uso ######################################
 if __name__ == "__main__":
@@ -1045,3 +1051,4 @@ if __name__ == "__main__":
     dp = Diagrama_Persistencia([p0, p1, p2, p3, p4, p5])
     dp.show_diagrama()
     dp.show_codigo_barras()
+    dp.alfa_complex().show_voronoi_alfa()
