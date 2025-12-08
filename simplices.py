@@ -782,6 +782,8 @@ class Diagrama_Persistencia:
             ac.insert(s.index)
         return ac
 
+###################################### Fin Clase 12 ######################################
+
 ###################################### Ejemplo de Uso ######################################
 if __name__ == "__main__":
     # # Definimos los símplices maximales del complejo
