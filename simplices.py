@@ -721,7 +721,7 @@ class Diagrama_Persistencia:
             s_low = self.simplices_ordenados[low]
             s_j = self.simplices_ordenados[j]
             if s_j.dimension == 1: # H0
-                dgm0.append((s_low.index, s_j.index))
+                dgm0.append((0, s_j.index))
             elif s_j.dimension == 2: # H1
                 dgm1.append((s_low.index, s_j.index))
         dgm0.append((0.0, self.simplices_ordenados[-1].index + 0.85))  # Ultima componente conexa
