@@ -1104,20 +1104,20 @@ if __name__ == "__main__":
     # print("+    Numeros de Betti de algunos alfa complejos    +")
     # print("+--------------------------------------------------+")
     # Definimos varios alfa-complejos distintos
-    points1 = np.random.rand(10,2)
-    points2 = np.random.rand(10,2)
-    points3 = np.random.rand(10,2)
-    points4 = np.random.rand(10,2)
-    p = [[Punto(i, points1[i]) for i in range(len(points1))], 
-        [Punto(i, points2[i]) for i in range(len(points2))], 
-        [Punto(i, points3[i]) for i in range(len(points3))], 
-        [Punto(i, points4[i]) for i in range(len(points4))]]
-    acom = [AlfaComplejo(p[0], 0.25),
-            AlfaComplejo(p[1], 0.25),
-            AlfaComplejo(p[2], 0.25),
-            AlfaComplejo(p[3], 0.25)]
-    for i in range(len(acom)):
-        acom[i].alphaplot()
+    # points1 = np.random.rand(10,2)
+    # points2 = np.random.rand(10,2)
+    # points3 = np.random.rand(10,2)
+    # points4 = np.random.rand(10,2)
+    # p = [[Punto(i, points1[i]) for i in range(len(points1))], 
+    #     [Punto(i, points2[i]) for i in range(len(points2))], 
+    #     [Punto(i, points3[i]) for i in range(len(points3))], 
+    #     [Punto(i, points4[i]) for i in range(len(points4))]]
+    # acom = [AlfaComplejo(p[0], 0.25),
+    #         AlfaComplejo(p[1], 0.25),
+    #         AlfaComplejo(p[2], 0.25),
+    #         AlfaComplejo(p[3], 0.25)]
+    # for i in range(len(acom)):
+    #     acom[i].alphaplot()
     # for i in range(len(acom)):
     #     # Por si se quiere visualizar los alfa-complejos antes de ver sus numeros de Betti
     #     # print("Imprimimos el complejo, sus puntos y hacemos un plot del alfa complejo.")
@@ -1127,9 +1127,9 @@ if __name__ == "__main__":
     #     print(f"Numeros de Betti del alfa-complejo {i + 1}:")
     #     for j in range(acom[i].d + 1):
     #         acom[i].complex.betti(j)
-    # print("+--------------------------------------------------+")
-    # print("+                Algoritmo incremental             +")
-    # print("+--------------------------------------------------+")
+    # print("####################################################")
+    # print("#                Algoritmo incremental             #")
+    # print("####################################################")
     # s1 = Simplice([0,1,2])
     # s2 = Simplice([1,2,3])
     # s3 = Simplice([1,4,5])
@@ -1141,13 +1141,13 @@ if __name__ == "__main__":
     # s9 = Simplice([8,9])
     # complejo_incremental = Complejo_simplicial([s1,s2,s3,s4,s5,s6,s7,s8,s9])
     # complejo_incremental.algoritmo_incremental()
-    # p0 = Punto(0, (-0.75, 1.06))
-    # p1 = Punto(1, (1.0, 1.732))
-    # p2 = Punto(2, (2.75, 1.06))
-    # p3 = Punto(3, (0.0, 0.0))
-    # p4 = Punto(4, (2.0, 0.0))
-    # p5 = Punto(5, (1.0, -1.30))
-    # dp = Diagrama_Persistencia([p0, p1, p2, p3, p4, p5])
-    # dp.show_diagrama()
-    # dp.show_codigo_barras()
-    # dp.alfa_complejo.alphaplot()
+    p0 = Punto(0, (-0.75, 1.06))
+    p1 = Punto(1, (1.0, 1.732))
+    p2 = Punto(2, (2.75, 1.06))
+    p3 = Punto(3, (0.0, 0.0))
+    p4 = Punto(4, (2.0, 0.0))
+    p5 = Punto(5, (1.0, -1.30))
+    dp = Diagrama_Persistencia([p0, p1, p2, p3, p4, p5])
+    dp.show_diagrama()
+    dp.show_codigo_barras()
+    dp.alfa_complejo.alphaplot()
